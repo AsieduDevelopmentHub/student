@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Smart Refrigerator Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+
+  <style>
+    :root{
+      --card-bg:#ffffff;
+      --page-bg:#f9fafc;
+      --text:#222;
+      --muted:#6b7280;
+      --shadow:0 4px 12px rgba(0,0,0,.08);
+      --radius:14px;
+      --gap:15px;
+      --min-col:177px; /* 👈 mobile grid column size */
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; padding:20px;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+      background:var(--page-bg); color:var(--text);
+    }
+    h1{margin:0 0 10px;text-align:center}
+    .sub{margin:0 auto 18px;text-align:center;color:var(--muted);font-size:14px}
+    .dashboard{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(var(--min-col), 1fr));
+      gap:var(--gap);
+      padding:10px 0;
+      align-items:stretch;
+    }
+    .card{
+      background:var(--card-bg);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:14px;
+      text-align:center;
+    }
+    .card h3{margin:.25rem 0 .5rem 0;font-size:16px}
+    .value{font-weight:700;margin-top:8px}
+    .value.small{font-weight:600;color:var(--muted);font-size:14px}
+    canvas{margin-top:10px}
+    .controls{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+    .btn{
+      padding:10px 16px;border:0;border-radius:10px;cursor:pointer;
+      box-shadow:var(--shadow);font-weight:600
+    }
+    .btn.on{background:#16a34a;color:#fff}
+    .btn.off{background:#dc2626;color:#fff}
+    /* Make charts crisp on small screens */
+    @media (max-width: 400px){
+      canvas{max-width:100%;height:auto}
+    }
+  </style>
+</head>
+<body>
+  <h1>Smart Refrigerator Dashboard</h1>
+  <p class="sub">Live gauges + usage & cost tracking (GHS)</p>
+
+  <div class="dashboard">
+    <!-- Gauges -->
+    <div class="card">
+      <h3>Temperature</h3>
+      <canvas id="tempGauge" width="320" height="160"></canvas>
+      <div id="tempVal" class="value">-- °C</div>
+      <div class="value small">0–40 °C</div>
+    </div>
+
+    <div class="card">
+      <h3>Voltage</h3>
+      <canvas id="voltGauge" width="320" height="160"></canvas>
+      <div id="voltVal" class="value">-- V</div>
+      <div class="value small">0–300 V</div>
+    </div>
+
+    <div class="card">
+      <h3>Current</h3>
+      <canvas id="currGauge" width="320" height="160"></canvas>
+      <div id="currVal" class="value">-- A</div>
+      <div class="value small">0–20 A</div>
+    </div>
+
+    <!-- Numeric cards -->
+    <div class="card">
+      <h3>Power</h3>
+      <div id="powerVal" class="value">-- W</div>
+      <div class="value small">Instantaneous</div>
+    </div>
+
+    <div class="card">
+      <h3>Energy</h3>
+      <div id="energyVal" class="value">-- kWh</div>
+      <div class="value small">Cumulative</div>
+    </div>
+
+    <!-- Cost graph + live number -->
+    <div class="" style="grid-column: span 2;width:90%; margin:auto;">
+      <h3>Cost (₵) Over Time</h3>
+      <canvas id="costGraph" height="160"></canvas>
+      <div id="costVal" class="value" style="margin-top:12px">₵ --</div>
+      <div class="value small">Auto-updates every 10 seconds</div>
+    </div>
+  </div>
+
+  <div class="card" style="max-width:680px;margin:0 auto;">
+    <h3>Relay Control</h3>
+    <div class="controls">
+      <button class="btn on"  onclick="toggleRelay(1)">Turn ON</button>
+      <button class="btn off" onclick="toggleRelay(0)">Turn OFF</button>
+    </div>
+  </div>
+
+  <!-- App Logic -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    // 🔧 Replace with your Firebase config
+    const firebaseConfig = {
+
+
+  apiKey: "AIzaSyC0ScXmzo0-O2Vsxjpp2nTDmJkLETobEQg",
+  authDomain: "v0ai-real.firebaseapp.com",
+  databaseURL: "https://v0ai-real-default-rtdb.firebaseio.com",
+  projectId: "v0ai-real",
+  storageBucket: "v0ai-real.firebasestorage.app",
+  messagingSenderId: "151198275979",
+  appId: "1:151198275979:web:54cdffc9acc5b246fb378e",
+  measurementId: "G-1828HQE7KH"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getDatabase(app);
+
+    // Tariff (GHS/kWh) — adjust to your actual ECG tariff
+    const tariffRate = 1.5;
+
+    // State
+    let totalEnergy = 0; // kWh
+    let currentCost = 0; // GHS
+    let voltage = 0, current = 0; // V, A
+
+    // ---- Gauge Factory (Chart.js doughnut as semicircle)
+    function createGauge(id, maxValue, color){
+      const el = document.getElementById(id);
+      return new Chart(el, {
+        type: "doughnut",
+        data: {
+          datasets: [{
+            data: [0, maxValue],
+            backgroundColor: [color, "#e5e7eb"], // slate-200 for remainder
+            borderWidth: 0
+          }]
+        },
+        options: {
+          rotation: -90,
+          circumference: 180,
+          cutout: "70%",
+          responsive: true,
+          plugins: { legend: { display:false }, tooltip: { enabled:false } }
+        }
+      });
+    }
+
+    // Create Gauges
+    const tempGauge = createGauge("tempGauge", 40,  "#ef4444"); // red-500
+    const voltGauge = createGauge("voltGauge", 300, "#0ea5e9"); // sky-500
+    const currGauge = createGauge("currGauge", 20,  "#10b981"); // emerald-500
+
+    // ---- Cost Graph
+    const costCtx = document.getElementById("costGraph");
+    const costGraph = new Chart(costCtx, {
+      type: "line",
+      data: {
+        labels: [],
+        datasets: [{
+          label: "Cost (₵)",
+          data: [],
+          borderColor: "#f59e0b",           // amber-500
+          backgroundColor: "rgba(245,158,11,.18)",
+          fill: true,
+          tension: 0.3,
+          pointRadius: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display:true } },
+        scales: {
+          x: { title: { display:true, text:"Time" } },
+          y: { title: { display:true, text:"Cost (₵)" }, beginAtZero:true }
+        }
+      }
+    });
+
+    // ---- Firebase Refs
+    const tempRef  = ref(db, "sensors/Body Temperature");
+    const voltRef  = ref(db, "sensors/Blood Pressure");
+    const currRef  = ref(db, "sensors/sp02");
+    const relayRef = ref(db, "controls/lighting");
+
+    // ---- Listeners
+    onValue(tempRef, snap => {
+      const val = Number(snap.val()) || 0;
+      const max = 40;
+      tempGauge.data.datasets[0].data[0] = Math.min(Math.max(val, 0), max);
+      tempGauge.data.datasets[0].data[1] = Math.max(max - val, 0);
+      tempGauge.update();
+      document.getElementById("tempVal").textContent = `${val.toFixed(1)} °C`;
+    });
+
+    onValue(voltRef, snap => {
+      voltage = Number(snap.val()) || 0;
+      const max = 300;
+      voltGauge.data.datasets[0].data[0] = Math.min(Math.max(voltage, 0), max);
+      voltGauge.data.datasets[0].data[1] = Math.max(max - voltage, 0);
+      voltGauge.update();
+      document.getElementById("voltVal").textContent = `${voltage.toFixed(1)} V`;
+      updatePowerEnergyCost();
+    });
+
+    onValue(currRef, snap => {
+      current = Number(snap.val()) || 0;
+      const max = 20;
+      currGauge.data.datasets[0].data[0] = Math.min(Math.max(current, 0), max);
+      currGauge.data.datasets[0].data[1] = Math.max(max - current, 0);
+      currGauge.update();
+      document.getElementById("currVal").textContent = `${current.toFixed(2)} A`;
+      updatePowerEnergyCost();
+    });
+
+    // ---- Compute Power (W), accumulate Energy (kWh), compute Cost (₵)
+    function updatePowerEnergyCost(){
+      const powerW = voltage * current; // instantaneous W
+      document.getElementById("powerVal").textContent = `${powerW.toFixed(2)} W`;
+      // Integrate energy assuming update tick is 1s. We’ll advance energy every second with a timer below.
+    }
+
+    // Advance energy & cost every second using latest power
+    setInterval(() => {
+      const powerW = voltage * current;              // W
+      const energyKWhPerSec = powerW / 3_600_000;    // kWh per second
+      totalEnergy += energyKWhPerSec;
+      document.getElementById("energyVal").textContent = `${totalEnergy.toFixed(6)} kWh`;
+      currentCost = totalEnergy * tariffRate;
+      document.getElementById("costVal").textContent = `₵ ${currentCost.toFixed(4)}`;
+    }, 1000);
+
+    // Push a cost sample to the chart every 10 seconds (rolling window of last 15 points)
+    setInterval(() => {
+      const now = new Date();
+      const label = now.toLocaleTimeString();
+      costGraph.data.labels.push(label);
+      costGraph.data.datasets[0].data.push(Number(currentCost.toFixed(4)));
+
+      const MAX_POINTS = 15;
+      if (costGraph.data.labels.length > MAX_POINTS){
+        costGraph.data.labels.shift();
+        costGraph.data.datasets[0].data.shift();
+      }
+      costGraph.update();
+    }, 10_000);
+
+    // ---- Relay control
+    window.toggleRelay = (state) => set(relayRef, state);
+  </script>
+</body>
+</html>
