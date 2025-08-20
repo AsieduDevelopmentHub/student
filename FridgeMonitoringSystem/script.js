@@ -79,7 +79,7 @@ const costGraph = new Chart(costCard, {
 });
 
 // Firebase Refs
-const tempRef  = ref(db, "sensors/Body Temperature");
+const tempRef  = ref(db, "Sensors/Temperature");
 const voltRef  = ref(db, "sensors/Blood Pressure");
 const currRef  = ref(db, "sensors/Heart Rate");
 const relayRef = ref(db, "controls/lighting");
