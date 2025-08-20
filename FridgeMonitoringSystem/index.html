@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Smart Refrigerator Monitoring and Control System Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+  <link rel="stylesheet" href="style.css">  
+  <link rel="shortcut icon" href="circuit.jpg" type="image/jpg">
+</head>
+<body>
+    <header>
+        <h1>Smart Refrigerator Monitoring and Control System Dashboard</h1>
+        <p class="sub">Live monitoring + usage & cost tracking (GHS)</p>
+    </header>
+    <main>
+        <div class="dashboard">
+            <div class="cards">
+                <!-- Gauges -->
+                <div class="card">
+                    <h3>Temperature</h3>
+                    <canvas id="tempGauge" width="320" height="160"></canvas>
+                    <div id="tempVal" class="value">-- °C</div>
+                    <div class="value small">0–40 °C</div>
+                </div>
+
+                <div class="card">
+                    <h3>Voltage</h3>
+                    <canvas id="voltGauge" width="320" height="160"></canvas>
+                    <div id="voltVal" class="value">-- V</div>
+                    <div class="value small">0–300 V</div>
+                </div>
+
+                <div class="card">
+                    <h3>Current</h3>
+                    <canvas id="currGauge" width="320" height="160"></canvas>
+                    <div id="currVal" class="value">-- A</div>
+                    <div class="value small">0–20 A</div>
+                </div>
+
+                <!-- Numeric cards -->
+                <div class="card">
+                    <h3>Power</h3>
+                    <div class="cardInfo">
+                        <div id="powerVal" class="value">-- W</div>
+                        <div class="value small">Instantaneous</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Energy</h3>
+                    <div class="cardInfo">
+                        <div id="energyVal" class="value">-- kWh</div>
+                        <div class="value small">Cumulative</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Cost graph + live number -->
+            <div class="cost">
+                <h3>Cost (₵) Over Time</h3>
+                <canvas id="costGraph" height="auto"></canvas>
+                <div id="costVal" class="value" style="margin-top: -10px;">₵ --</div>
+                <div class="value small">Auto-updates every 30 seconds</div>
+            </div>
+            <div class="card buttons" style="max-width:680px;margin:30px auto;">
+                <h3>Controls</h3>
+                <div class="controls">
+                    <button class="btn on"  onclick="toggleRelay(1)">Turn ON</button>
+                    <button class="btn off" onclick="toggleRelay(0)">Turn OFF</button>
+                    <button class="btn reset" onclick="reset()">Reset</button>
+                </div>
+                <div class="value small" id="msg"></div>
+                <div class="value small" id="rst"></div>
+            </div>
+        </div>
+    </main>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
