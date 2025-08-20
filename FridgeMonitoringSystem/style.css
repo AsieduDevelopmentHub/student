@@ -6,7 +6,7 @@
       --shadow:0 4px 12px rgba(0,0,0,.08), inset 0 0 6px rgba(0,0,0,0.35);
       --radius:14px;
       --gap:15px;
-      --min-col: 200px; 
+      --min-col: 160px; 
     }
     *{
         box-sizing: border-box;
