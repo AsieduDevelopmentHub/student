@@ -83,6 +83,9 @@ const tempRef  = ref(db, "Fridge/Sensors/Temperature");
 const voltRef  = ref(db, "Fridge/Sensors/Voltage");
 const currRef  = ref(db, "Fridge/Sensors/Current");
 const relayRef = ref(db, "Fridge/Controls/Relay");
+const powerRef = ref(db, "Fridge/Consumption/Wattage");
+const kWhRef = ref(db, "Fridge/Consumption/Energy");
+const costRef = ref(db, "Fridge/Consumption/Cost");
 const lastUpdateRef = ref(db, "Fridge/Time/LastUpdate");
 
 // Listeners
@@ -118,31 +121,45 @@ onValue(currRef, snap => {
 onValue(lastUpdateRef, snap => {
     const lastUpdate = snap.val();
     const lastUpdateEl = document.getElementById("lastUpdate");
-    if (lastUpdate) {
-            lastUpdateEl.textContent = `Last Update: ${lastUpdate.toLocaleString()}`;
-            lastUpdateEl.style.color = "#311d1dff"; // green for recent
-        } else {
-            lastUpdateEl.textContent = "Last Update: No updates yet";
-            lastUpdateEl.style.color = "#661515ff"; // red for no updates
-        }
-    
+    if (lastUpdate) { 
+        lastUpdateEl.textContent = `Last Update: ${lastUpdate.toLocaleString()}`;
+        lastUpdateEl.style.color = "#311d1dff"; // green for recent
+    } else {
+        lastUpdateEl.textContent = "Last Update: No updates yet";
+        lastUpdateEl.style.color = "#661515ff"; // red for no updates
+    }
+});
+
+onValue(powerRef, snap => {
+    const powerW = Number(snap.val()) || 0;
+    document.getElementById("powerVal").textContent = `${powerW.toFixed(2)} W`;
+});
+
+onValue(kWhRef, snap => {
+    totalEnergy = Number(snap.val()) || 0;
+    document.getElementById("energyVal").textContent = `${totalEnergy.toFixed(6)} kWh`;
+});
+
+onValue(costRef, snap => {
+    currentCost = Number(snap.val()) || 0;
+    document.getElementById("costVal").textContent = `₵ ${currentCost.toFixed(4)}`;
 });
 
 // Compute Power (W), accumulate Energy (kWh), compute Cost (₵)
-function updatePowerEnergyCost(){
-    const powerW = voltage * current;
-    document.getElementById("powerVal").textContent = `${powerW.toFixed(2)} W`;
-}
+// function updatePowerEnergyCost(){
+//     const powerW = voltage * current;
+//     document.getElementById("powerVal").textContent = `${powerW.toFixed(2)} W`;
+// }
 
 // Advance energy & cost every second using latest power
-setInterval(() => {
-    const powerW = voltage * current;              // W
-    const energyKWhPerSec = powerW / 3_600_000;    // kWh per second
-    totalEnergy += energyKWhPerSec;
-    document.getElementById("energyVal").textContent = `${totalEnergy.toFixed(6)} kWh`;
-    currentCost = totalEnergy * tariffRate;
-    document.getElementById("costVal").textContent = `₵ ${currentCost.toFixed(4)}`;
-}, 1000);
+// setInterval(() => {
+//     const powerW = voltage * current;              // W
+//     const energyKWhPerSec = powerW / 3_600_000;    // kWh per second
+//     totalEnergy += energyKWhPerSec;
+//     document.getElementById("energyVal").textContent = `${totalEnergy.toFixed(6)} kWh`;
+//     currentCost = totalEnergy * tariffRate;
+//     document.getElementById("costVal").textContent = `₵ ${currentCost.toFixed(4)}`;
+// }, 1000);
 
 // Push a cost sample to the chart every minute (rolling window of last 20 points)
 setInterval(() => {
@@ -151,13 +168,13 @@ setInterval(() => {
     costGraph.data.labels.push(label);
     costGraph.data.datasets[0].data.push(Number(currentCost.toFixed(4)));
 
-    const MAX_POINTS = 20;
+    const MAX_POINTS = 10;
     if (costGraph.data.labels.length > MAX_POINTS){
     costGraph.data.labels.shift();
     costGraph.data.datasets[0].data.shift();
     }
     costGraph.update();
-}, 60 * 1000);
+}, 300 * 1000);
 
 const rstMsg = document.getElementById("rst");
 function reset() {

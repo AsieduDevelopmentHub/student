@@ -86,7 +86,7 @@
         font-size:14px}
     canvas{ 
         height: auto;
-        padding: 20px;
+        padding: 10px;
     }
     .controls{
         display:flex;
@@ -124,7 +124,8 @@
     @media (max-width: 768px){
       canvas{
         max-width:100%; 
-        height:auto;
+        width: 100%;
+        height: 280px;
         }
         .cost{
             width: 100%;
