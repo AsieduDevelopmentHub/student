@@ -48,7 +48,7 @@ function createGauge(id, maxValue, color){
 }
 
 // Create Gauges
-const tempGauge = createGauge("tempGauge", 40,  "#ef4444"); // red-500
+const tempGauge = createGauge("tempGauge", 20,  "#ef4444"); // red-500
 const voltGauge = createGauge("voltGauge", 300, "#0ea5e9"); // sky-500
 const currGauge = createGauge("currGauge", 20,  "#10b981"); // emerald-500
 
@@ -79,15 +79,16 @@ const costGraph = new Chart(costCard, {
 });
 
 // Firebase Refs
-const tempRef  = ref(db, "sensors/Body Temperature");
-const voltRef  = ref(db, "sensors/Blood Pressure");
-const currRef  = ref(db, "sensors/Heart Rate");
-const relayRef = ref(db, "controls/lighting");
+const tempRef  = ref(db, "Fridge/Sensors/Temperature");
+const voltRef  = ref(db, "Fridge/Sensors/Voltage");
+const currRef  = ref(db, "Fridge/Sensors/Current");
+const relayRef = ref(db, "Fridge/Controls/Relay");
+const lastUpdateRef = ref(db, "Fridge/Time/LastUpdate");
 
 // Listeners
 onValue(tempRef, snap => {
     const val = Number(snap.val()) || 0;
-    const max = 40;
+    const max = 20;
     tempGauge.data.datasets[0].data[0] = Math.min(Math.max(val, 0), max);
     tempGauge.data.datasets[0].data[1] = Math.max(max - val, 0);
     tempGauge.update();
@@ -114,6 +115,19 @@ onValue(currRef, snap => {
     updatePowerEnergyCost();
 });
 
+onValue(lastUpdateRef, snap => {
+    const lastUpdate = snap.val();
+    const lastUpdateEl = document.getElementById("lastUpdate");
+    if (lastUpdate) {
+            lastUpdateEl.textContent = `Last Update: ${lastUpdate.toLocaleString()}`;
+            lastUpdateEl.style.color = "#311d1dff"; // green for recent
+        } else {
+            lastUpdateEl.textContent = "Last Update: No updates yet";
+            lastUpdateEl.style.color = "#661515ff"; // red for no updates
+        }
+    
+});
+
 // Compute Power (W), accumulate Energy (kWh), compute Cost (₵)
 function updatePowerEnergyCost(){
     const powerW = voltage * current;
@@ -130,7 +144,7 @@ setInterval(() => {
     document.getElementById("costVal").textContent = `₵ ${currentCost.toFixed(4)}`;
 }, 1000);
 
-// Push a cost sample to the chart every 30 seconds (rolling window of last 20 points)
+// Push a cost sample to the chart every minute (rolling window of last 20 points)
 setInterval(() => {
     const now = new Date();
     const label = now.toLocaleTimeString();
@@ -143,18 +157,14 @@ setInterval(() => {
     costGraph.data.datasets[0].data.shift();
     }
     costGraph.update();
-}, 30_000);
+}, 60 * 1000);
 
 const rstMsg = document.getElementById("rst");
 function reset() {
-    resetDevice();
-    if (rstMsg) {
-        rstMsg.textContent = "System is being Reset.....";
-        rstMsg.style.color = "#10b981"; // green for ready
-    }
+    
 }
 
-function resetDevice() {
+window.resetDevice = function() {
     totalEnergy = 0;
     currentCost = 0;
     voltage = 0;
@@ -178,30 +188,38 @@ function resetDevice() {
     costGraph.data.labels = [];
     costGraph.data.datasets[0].data = [];
     costGraph.update();
+
     set(tempRef, 0); // Reset temperature sensor
     set(voltRef, 0); // Reset voltage sensor
     set(currRef, 0); // Reset current sensor
     set(relayRef, 0); // Turn off relay
+    if (rstMsg) {
+        rstMsg.textContent = "System is Reseting.....";
+        rstMsg.style.color = "#10b981"; // green for ready
+        setTimeout(() => {
+            rstMsg.textContent = "System has been Reset succesfully";
+            rstMsg.style.color = "#10b981";
+        }, 5000);
+    }
     setTimeout(() => {
         set(relayRef, 1); // Turn on relay
-        rstMsg.textContent = "System has been reset";
-        rstMsg.style.color = "#10b981"; // green for reset
+        rstMsg.textContent = "System is Ready";
+        rstMsg.style.color = "#10b981"; // green for ready
+        alert("System has been reset. All values are set to zero.");
+        console.log("System reset complete");
     }, 5000);
-    console.log("System reset complete");
-    alert("System has been reset. All values are set to zero.");
-    relayControl();
+    setTimeout(() => {
+        rstMsg.textContent = "";
+    }, 10000);
 }
 
 // Relay control
-function relayControl(){
-    window.toggleRelay = (state) => set(relayRef, state);
-    const msg = document.getElementById("msg");
-    if(msg){
-        onValue(relayRef, snap => {
-            const state = snap.val() ? "ON" : "OFF";
-            msg.textContent = `System is ${state}`;
-            msg.style.color = snap.val() ? "#16a34a" : "#dc2626"; // green for ON, red for OFF
-        });
-    }
-}   
-relayControl();
+window.toggleRelay = (state) => set(relayRef, state);
+const msg = document.getElementById("msg");
+if(msg){
+    onValue(relayRef, snap => {
+        const state = snap.val() ? "ON" : "OFF";
+        msg.textContent = `System is ${state}`;
+        msg.style.color = snap.val() ? "#16a34a" : "#dc2626"; // green for ON, red for OFF
+    });
+}

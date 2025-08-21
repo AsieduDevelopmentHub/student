@@ -18,19 +18,27 @@
       background:var(--page-bg); 
       color:var(--text);
     }
-    h1{margin:0 0 10px;text-align:center}
+    header{
+        margin-bottom:10px;
+        text-align: center;
+    }
+    h1{
+        margin:0 0 10px;
+    }
+
     .sub{
         margin:0 auto 18px;
-        text-align:center;
         color:var(--muted);
         font-size:14px
     }
     .cards{
+      width: 100%;
       display:grid;
       grid-template-columns:repeat(auto-fit, minmax(var(--min-col), 1fr));
       gap:var(--gap);
       padding:10px 0;
       align-items:stretch;
+      margin: auto;
     }
     .card{
       background:var(--card-bg);
@@ -124,10 +132,12 @@
             padding: 5px;
             canvas{
                 width: 100%;
-                height: 100;
+                height: 300;
             }
         }
         .card.energy{
             grid-column: span 2;
+            width: 100%;
+            margin: auto;
         }
     }

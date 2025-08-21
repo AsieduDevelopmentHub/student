@@ -5,33 +5,35 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Smart Refrigerator Monitoring and Control System Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css">  
   <link rel="shortcut icon" href="circuit.jpg" type="image/jpg">
 </head>
 <body>
     <header>
-        <h1>Smart Refrigerator Monitoring and Control System Dashboard</h1>
-        <p class="sub">Live monitoring + usage & cost tracking (GHS)</p>
+        <h1 data-aos="fade-down">Smart Refrigerator Monitoring and Control System Dashboard</h1>
+        <p class="sub" data-aos="fade-up">Live monitoring + usage & cost tracking (GHS)</p>
+        <div class="value small" id="lastUpdate" data-aos="fade-down" data-aos-delay="2000"></div>
     </header>
     <main>
-        <div class="dashboard">
+        <div class="dashboard" data-aos="fade">
             <div class="cards">
                 <!-- Gauges -->
-                <div class="card">
+                <div class="card" data-aos="flip-left">
                     <h3>Temperature</h3>
                     <canvas id="tempGauge" width="320" height="160"></canvas>
                     <div id="tempVal" class="value">-- °C</div>
-                    <div class="value small">0–40 °C</div>
+                    <div class="value small">0–20 °C</div>
                 </div>
 
-                <div class="card">
+                <div class="card" data-aos="flip-right">
                     <h3>Voltage</h3>
                     <canvas id="voltGauge" width="320" height="160"></canvas>
                     <div id="voltVal" class="value">-- V</div>
                     <div class="value small">0–300 V</div>
                 </div>
 
-                <div class="card">
+                <div class="card" data-aos="flip-left">
                     <h3>Current</h3>
                     <canvas id="currGauge" width="320" height="160"></canvas>
                     <div id="currVal" class="value">-- A</div>
@@ -39,7 +41,7 @@
                 </div>
 
                 <!-- Numeric cards -->
-                <div class="card">
+                <div class="card" data-aos="flip-right">
                     <h3>Power</h3>
                     <div class="cardInfo">
                         <div id="powerVal" class="value">-- W</div>
@@ -47,7 +49,7 @@
                     </div>
                 </div>
 
-                <div class="card">
+                <div class="card energy" data-aos="zoom-left" data-aos-delay="500">
                     <h3>Energy</h3>
                     <div class="cardInfo">
                         <div id="energyVal" class="value">-- kWh</div>
@@ -56,25 +58,32 @@
                 </div>
             </div>
             <!-- Cost graph + live number -->
-            <div class="cost">
+            <div class="cost" data-aos="fade-up" data-aos-delay="1000">
                 <h3>Cost (₵) Over Time</h3>
                 <canvas id="costGraph" height="auto"></canvas>
                 <div id="costVal" class="value" style="margin-top: -10px;">₵ --</div>
-                <div class="value small">Auto-updates every 30 seconds</div>
+                <div class="value small">Auto-updates every 1 minute</div>
             </div>
-            <div class="card buttons" style="max-width:680px;margin:30px auto;">
+            <div class="card buttons" style="max-width:680px;margin:30px auto;" data-aos="fade-up">
                 <h3>Controls</h3>
                 <div class="controls">
-                    <button class="btn on"  onclick="toggleRelay(1)">Turn ON</button>
-                    <button class="btn off" onclick="toggleRelay(0)">Turn OFF</button>
-                    <button class="btn reset" onclick="reset()">Reset</button>
+                    <button class="btn on"  onclick="toggleRelay(1)" data-aos="fade-left">Turn ON</button>
+                    <button class="btn off" onclick="toggleRelay(0)" data-aos="fade-up" data-aos-delay="500">Turn OFF</button>
+                    <button class="btn reset" onclick="resetDevice()" data-aos="fade-right">Reset</button>
                 </div>
-                <div class="value small" id="msg"></div>
+                <div class="value small" id="msg" data-aos="fade-down" data-aos-delay="800"></div>
                 <div class="value small" id="rst"></div>
             </div>
         </div>
     </main>
 
   <script type="module" src="script.js"></script>
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script>
+    AOS.init({
+      duration: 1500,
+      once: false
+    });
+  </script>
 </body>
 </html>
