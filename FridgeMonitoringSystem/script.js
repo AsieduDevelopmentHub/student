@@ -86,6 +86,8 @@ const relayRef = ref(db, "Fridge/Controls/Relay");
 const powerRef = ref(db, "Fridge/Consumption/Wattage");
 const kWhRef = ref(db, "Fridge/Consumption/Energy");
 const costRef = ref(db, "Fridge/Consumption/Cost");
+// const costHistoryRef = ref(db, "Fridge/Consumption/CostHistory");
+const historyRef = ref(db, "Fridge/History");
 const lastUpdateRef = ref(db, "Fridge/Time/LastUpdate");
 
 // Listeners
@@ -145,42 +147,100 @@ onValue(costRef, snap => {
     document.getElementById("costVal").textContent = `₵ ${currentCost.toFixed(4)}`;
 });
 
-// Compute Power (W), accumulate Energy (kWh), compute Cost (₵)
-// function updatePowerEnergyCost(){
-//     const powerW = voltage * current;
-//     document.getElementById("powerVal").textContent = `${powerW.toFixed(2)} W`;
-// }
+// Render logs + chart from all history on page load
+onValue(historyRef, (snapshot) => {
+  const history = snapshot.val();
+  const tbody = document.querySelector("#historyTable tbody");
 
-// Advance energy & cost every second using latest power
-// setInterval(() => {
-//     const powerW = voltage * current;              // W
-//     const energyKWhPerSec = powerW / 3_600_000;    // kWh per second
-//     totalEnergy += energyKWhPerSec;
-//     document.getElementById("energyVal").textContent = `${totalEnergy.toFixed(6)} kWh`;
-//     currentCost = totalEnergy * tariffRate;
-//     document.getElementById("costVal").textContent = `₵ ${currentCost.toFixed(4)}`;
-// }, 1000);
+  tbody.innerHTML = ""; // clear old rows
+  costGraph.data.labels = [];
+  costGraph.data.datasets[0].data = [];
 
-// Push a cost sample to the chart every minute (rolling window of last 20 points)
-setInterval(() => {
-    const now = new Date();
-    const label = now.toLocaleTimeString();
-    costGraph.data.labels.push(label);
-    costGraph.data.datasets[0].data.push(Number(currentCost.toFixed(4)));
+  if (history) {
+    // Loop through dates
+    for (let date in history) {
+      for (let time in history[date]) {
+        let record = history[date][time];
 
+        // ---- Table row ----
+        let row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${pickedDate} ${time}</td>
+          <td>${record.Voltage}</td>
+          <td>${record.Current}</td>
+          <td>${record.Energy}</td>
+          <td>${record.Cost}</td>
+        `;
+        tbody.appendChild(row);
+        
+        // ---- Add to chart ----
+        costGraph.data.labels.push(`${time}`);
+        costGraph.data.datasets[0].data.push(Number(record.Cost));
+      }
+    }
+
+    // Trim chart to last 20 points
     const MAX_POINTS = 10;
-    if (costGraph.data.labels.length > MAX_POINTS){
-    costGraph.data.labels.shift();
-    costGraph.data.datasets[0].data.shift();
+    if (costGraph.data.labels.length > MAX_POINTS) {
+      costGraph.data.labels = costGraph.data.labels.slice(-MAX_POINTS);
+      costGraph.data.datasets[0].data = costGraph.data.datasets[0].data.slice(-MAX_POINTS);
     }
     costGraph.update();
-}, 300 * 1000);
+  }
+});
+
+// Fetch by specific date (filter)
+document.getElementById("fetchLogs").addEventListener("click", () => {
+  const pickedDate = document.getElementById("datePicker").value;
+  const tbody = document.querySelector("#historyTable tbody");
+
+  if (!pickedDate) {
+    alert("Please select a date!");
+    return;
+  }
+
+  onValue(ref(db, "Fridge/History/" + pickedDate), (snapshot) => {
+    const logs = snapshot.val();
+    tbody.innerHTML = "";
+    costGraph.data.labels = [];
+    costGraph.data.datasets[0].data = [];
+
+    if (logs) {
+      for (let time in logs) {
+        let record = logs[time];
+
+        // ---- Table row ----
+        let row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${pickedDate} ${time}</td>
+          <td>${record.Voltage}</td>
+          <td>${record.Current}</td>
+          <td>${record.Energy}</td>
+          <td>${record.Cost}</td>
+        `;
+        tbody.appendChild(row);
+
+        // ---- Chart ----
+        costGraph.data.labels.push(time);
+        costGraph.data.datasets[0].data.push(Number(record.Cost));
+      }
+
+      // Limit chart points
+      const MAX_POINTS = 10;
+      if (costGraph.data.labels.length > MAX_POINTS) {
+        costGraph.data.labels = costGraph.data.labels.slice(-MAX_POINTS);
+        costGraph.data.datasets[0].data = costGraph.data.datasets[0].data.slice(-MAX_POINTS);
+      }
+      costGraph.update();
+    } else {
+      tbody.innerHTML = `<tr><td colspan="5" style="color:red;">No logs for ${pickedDate}</td></tr>`;
+    }
+  }, { onlyOnce: true  });
+});
+
 
 const rstMsg = document.getElementById("rst");
-function reset() {
-    
-}
-
+// Reset device
 window.resetDevice = function() {
     totalEnergy = 0;
     currentCost = 0;
@@ -191,16 +251,16 @@ window.resetDevice = function() {
     voltGauge.data.datasets[0].data[0] = 0;
     currGauge.data.datasets[0].data[0] = 0;
 
-    tempGauge.update();
-    voltGauge.update();
-    currGauge.update();
+    // tempGauge.update();
+    // voltGauge.update();
+    // currGauge.update();
 
-    document.getElementById("tempVal").textContent = "0.0 °C";
-    document.getElementById("voltVal").textContent = "0.0 V";
-    document.getElementById("currVal").textContent = "0.00 A";
-    document.getElementById("powerVal").textContent = "0.00 W";
-    document.getElementById("energyVal").textContent = "0.000000 kWh";
-    document.getElementById("costVal").textContent = "₵ 0.0000";
+    // document.getElementById("tempVal").textContent = "0.0 °C";
+    // document.getElementById("voltVal").textContent = "0.0 V";
+    // document.getElementById("currVal").textContent = "0.00 A";
+    // document.getElementById("powerVal").textContent = "0.00 W";
+    // document.getElementById("energyVal").textContent = "0.000000 kWh";
+    // document.getElementById("costVal").textContent = "₵ 0.0000";
 
     costGraph.data.labels = [];
     costGraph.data.datasets[0].data = [];
@@ -210,6 +270,11 @@ window.resetDevice = function() {
     set(voltRef, 0); // Reset voltage sensor
     set(currRef, 0); // Reset current sensor
     set(relayRef, 0); // Turn off relay
+    set(powerRef, 0); // Reset power
+    set(kWhRef, 0); // Reset energy
+    set(costRef, 0); // Reset cost
+    set(historyRef, null); // Clear history
+    set(lastUpdateRef, "No updates yet"); // Reset last update
     if (rstMsg) {
         rstMsg.textContent = "System is Reseting.....";
         rstMsg.style.color = "#10b981"; // green for ready
@@ -238,5 +303,6 @@ if(msg){
         const state = snap.val() ? "ON" : "OFF";
         msg.textContent = `System is ${state}`;
         msg.style.color = snap.val() ? "#16a34a" : "#dc2626"; // green for ON, red for OFF
+        console.log("Relay snapshot:", snap.val());
     });
 }

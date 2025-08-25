@@ -62,7 +62,7 @@
                 <h3>Cost (₵) Over Time</h3>
                 <canvas id="costGraph" height="200px"></canvas>
                 <div id="costVal" class="value" style="margin-top: -10px;">₵ --</div>
-                <div class="value small">Auto-updates every 5 minute</div>
+                <div class="value small">Auto-updates every 15 minute</div>
             </div>
             <div class="card buttons" style="max-width:680px;margin:30px auto;" data-aos="fade-up">
                 <h3>Controls</h3>
@@ -75,7 +75,32 @@
                 <div class="value small" id="rst"></div>
             </div>
         </div>
+        <div id="history-controls">
+            <h3 data-aos="fade-up">Historical Data Logs</h3>
+
+            <input type="date" id="datePicker" />
+            <button id="fetchLogs">Fetch Logs</button>
+        </div>
+        <div class="history" id="history" data-aos="zoom-in">
+            <table id="historyTable">
+                <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Voltage (V)</th>
+                    <th>Current (A)</th>
+                    <th>Energy (kWh)</th>
+                    <th>Cost (GHC)</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </main>
+    <footer data-aos="fade-up" data-aos-delay="200" data-aos-once="true">
+        <hr><kbd>
+            &copy; 2025 Smart Refrigerator Monitoring and Control System Dashboard | Developed by ATU. All rights reserved.
+        </kbd>
+    </footer>
 
   <script type="module" src="script.js"></script>
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
