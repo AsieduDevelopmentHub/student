@@ -172,7 +172,7 @@ onValue(historyRef, (snapshot) => {
           <td>${record.Cost}</td>
         `;
         tbody.appendChild(row);
-        
+
         // ---- Add to chart ----
         costGraph.data.labels.push(`${time}`);
         costGraph.data.datasets[0].data.push(Number(record.Cost));
@@ -189,6 +189,35 @@ onValue(historyRef, (snapshot) => {
   }
 });
 
+onValue(ref(db, "Fridge/History/"), (snapshot) => {
+  const logs = snapshot.val();
+  costGraph.data.labels = [];
+  costGraph.data.datasets[0].data = [];
+
+  if (logs) {
+    // Loop through each date
+    for (let date in logs) {
+      // Loop through each time for that date
+      for (let time in logs[date]) {
+        let record = logs[date][time];
+
+        costGraph.data.labels.push(`${time}`);
+        costGraph.data.datasets[0].data.push(Number(record.Cost));
+      }
+    }
+
+    // Keep last 10 points only
+    const MAX_POINTS = 10;
+    if (costGraph.data.labels.length > MAX_POINTS) {
+      costGraph.data.labels = costGraph.data.labels.slice(-MAX_POINTS);
+      costGraph.data.datasets[0].data = costGraph.data.datasets[0].data.slice(-MAX_POINTS);
+    }
+
+    costGraph.update();
+  }
+});
+
+
 // Fetch by specific date (filter)
 document.getElementById("fetchLogs").addEventListener("click", () => {
   const pickedDate = document.getElementById("datePicker").value;
@@ -202,8 +231,8 @@ document.getElementById("fetchLogs").addEventListener("click", () => {
   onValue(ref(db, "Fridge/History/" + pickedDate), (snapshot) => {
     const logs = snapshot.val();
     tbody.innerHTML = "";
-    costGraph.data.labels = [];
-    costGraph.data.datasets[0].data = [];
+    // costGraph.data.labels = [];
+    // costGraph.data.datasets[0].data = [];
 
     if (logs) {
       for (let time in logs) {
@@ -221,17 +250,19 @@ document.getElementById("fetchLogs").addEventListener("click", () => {
         tbody.appendChild(row);
 
         // ---- Chart ----
-        costGraph.data.labels.push(time);
-        costGraph.data.datasets[0].data.push(Number(record.Cost));
+        // costGraph.data.labels.push(time);
+        // costGraph.data.datasets[0].data.push(Number(record.Cost));
       }
 
       // Limit chart points
-      const MAX_POINTS = 10;
-      if (costGraph.data.labels.length > MAX_POINTS) {
-        costGraph.data.labels = costGraph.data.labels.slice(-MAX_POINTS);
-        costGraph.data.datasets[0].data = costGraph.data.datasets[0].data.slice(-MAX_POINTS);
-      }
-      costGraph.update();
+    //    const MAX_POINTS = 10;
+    //    costGraph.data.labels.push(time);
+    //    costGraph.data.datasets[0].data.push(Number(record.Cost));
+    //   if (costGraph.data.labels.length > MAX_POINTS) {
+    //     costGraph.data.labels = costGraph.data.labels.slice(-MAX_POINTS);
+    //     costGraph.data.datasets[0].data = costGraph.data.datasets[0].data.slice(-MAX_POINTS);
+    //   }
+    //   costGraph.update();
     } else {
       tbody.innerHTML = `<tr><td colspan="5" style="color:red;">No logs for ${pickedDate}</td></tr>`;
     }
