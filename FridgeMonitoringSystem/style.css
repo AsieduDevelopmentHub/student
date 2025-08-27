@@ -210,7 +210,7 @@ footer{
     margin-top: 50px;
 }
 
-    /* Make charts fit on small screens */
+    /* Make charts fit on small screens */c                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
     @media (max-width: 768px){
       canvas{
         max-width:100%; 

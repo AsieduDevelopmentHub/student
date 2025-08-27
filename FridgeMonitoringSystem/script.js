@@ -92,12 +92,15 @@ const lastUpdateRef = ref(db, "Fridge/Time/LastUpdate");
 
 // Listeners
 onValue(tempRef, snap => {
-    const val = Number(snap.val()) || 0;
-    const max = 20;
-    tempGauge.data.datasets[0].data[0] = Math.min(Math.max(val, 0), max);
-    tempGauge.data.datasets[0].data[1] = Math.max(max - val, 0);
+    const Temperature = Number(snap.val()) || 0;
+    const max = 40;
+    tempGauge.data.datasets[0].data[0] = Math.min(Math.max(Temperature, 0), max);
+    tempGauge.data.datasets[0].data[1] = Math.max(max - Temperature, 0);
     tempGauge.update();
     document.getElementById("tempVal").textContent = `${val.toFixed(1)} °C`;
+    if (Temperature <= -126){
+      document.getElementById("tempVal").textContent = `N/A`;
+    }
 });
 
 onValue(voltRef, snap => {
@@ -327,13 +330,34 @@ window.resetDevice = function() {
 }
 
 // Relay control
+// window.toggleRelay = (state) => set(relayRef, state);
+// const msg = document.getElementById("msg");
+// if(msg){
+//     onValue(relayRef, snap => {
+//         const state = snap.val() ? "ON" : "OFF";
+//         msg.textContent = `System is ${state}`;
+//         msg.style.color = snap.val() ? "#16a34a" : "#dc2626"; // green for ON, red for OFF
+//         console.log("Relay snapshot:", snap.val());
+//     });
+// }
+
+// const relayRef = ref(db, "Fridge/Controls/Relay");   // Relay control
+
+// Toggle relay (true/false or 1/0)
 window.toggleRelay = (state) => set(relayRef, state);
+
+// Message element
 const msg = document.getElementById("msg");
-if(msg){
-    onValue(relayRef, snap => {
-        const state = snap.val() ? "ON" : "OFF";
-        msg.textContent = `System is ${state}`;
-        msg.style.color = snap.val() ? "#16a34a" : "#dc2626"; // green for ON, red for OFF
-        console.log("Relay snapshot:", snap.val());
-    });
+
+if (msg) {
+  onValue(relayRef, (snap) => {
+    let val = snap.val();
+
+    // Normalize: accept 1/0 or true/false
+    let isOn = (val === true || val === 1 || val === "1");
+    msg.textContent = `System is ${isOn ? "ON" : "OFF"}`;
+    msg.style.color = isOn ? "#16a34a" : "#dc2626"; // green/red
+    console.log("Relay snapshot:", val);
+  });
 }
+
