@@ -97,11 +97,13 @@ onValue(tempRef, snap => {
     tempGauge.data.datasets[0].data[0] = Math.min(Math.max(Temperature, 0), max);
     tempGauge.data.datasets[0].data[1] = Math.max(max - Temperature, 0);
     tempGauge.update();
-    document.getElementById("tempVal").textContent = `${val.toFixed(1)} °C`;
-    if (Temperature <= -126){
-      document.getElementById("tempVal").textContent = `N/A`;
+    if (Temperature <= -126) {
+        document.getElementById("tempVal").textContent = `N/A`;
+    } else {
+        document.getElementById("tempVal").textContent = `${Temperature.toFixed(1)} °C`;
     }
 });
+
 
 onValue(voltRef, snap => {
     voltage = Number(snap.val()) || 0;
@@ -251,21 +253,7 @@ document.getElementById("fetchLogs").addEventListener("click", () => {
           <td>${record.Cost}</td>
         `;
         tbody.appendChild(row);
-
-        // ---- Chart ----
-        // costGraph.data.labels.push(time);
-        // costGraph.data.datasets[0].data.push(Number(record.Cost));
       }
-
-      // Limit chart points
-    //    const MAX_POINTS = 10;
-    //    costGraph.data.labels.push(time);
-    //    costGraph.data.datasets[0].data.push(Number(record.Cost));
-    //   if (costGraph.data.labels.length > MAX_POINTS) {
-    //     costGraph.data.labels = costGraph.data.labels.slice(-MAX_POINTS);
-    //     costGraph.data.datasets[0].data = costGraph.data.datasets[0].data.slice(-MAX_POINTS);
-    //   }
-    //   costGraph.update();
     } else {
       tbody.innerHTML = `<tr><td colspan="5" style="color:red;">No logs for ${pickedDate}</td></tr>`;
     }
@@ -274,6 +262,7 @@ document.getElementById("fetchLogs").addEventListener("click", () => {
 
 
 const rstMsg = document.getElementById("rst");
+
 // Reset device
 window.resetDevice = function() {
     totalEnergy = 0;
@@ -284,17 +273,6 @@ window.resetDevice = function() {
     tempGauge.data.datasets[0].data[0] = 0;
     voltGauge.data.datasets[0].data[0] = 0;
     currGauge.data.datasets[0].data[0] = 0;
-
-    // tempGauge.update();
-    // voltGauge.update();
-    // currGauge.update();
-
-    // document.getElementById("tempVal").textContent = "0.0 °C";
-    // document.getElementById("voltVal").textContent = "0.0 V";
-    // document.getElementById("currVal").textContent = "0.00 A";
-    // document.getElementById("powerVal").textContent = "0.00 W";
-    // document.getElementById("energyVal").textContent = "0.000000 kWh";
-    // document.getElementById("costVal").textContent = "₵ 0.0000";
 
     costGraph.data.labels = [];
     costGraph.data.datasets[0].data = [];
