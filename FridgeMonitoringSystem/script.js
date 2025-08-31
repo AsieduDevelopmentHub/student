@@ -97,10 +97,11 @@ onValue(tempRef, snap => {
     tempGauge.data.datasets[0].data[0] = Math.min(Math.max(Temperature, 0), max);
     tempGauge.data.datasets[0].data[1] = Math.max(max - Temperature, 0);
     tempGauge.update();
-    document.getElementById("tempVal").textContent = `${val.toFixed(1)} °C`;
     if (Temperature <= -126){
-      document.getElementById("tempVal").textContent = `N/A`;
-    }
+      document.getElementById("tempVal").textContent = ``;
+    }else {
+document.getElementById("tempVal").textContent = `${val.toFixed(1)} °C`;
+}
 });
 
 onValue(voltRef, snap => {
