@@ -13,12 +13,10 @@
 #define SENSITIVITY 490.0f
 #define tempsensorPin 2
 #define sensitive 100              
-#define SSID "Asare A05"
-#define PASSWORD "Asare2016"
-#define API_KEY "AIzaSyC0ScXmzo0-O2Vsxjpp2nTDmJkLETobEQg"
-#define DB_URL "https://v0ai-real-default-rtdb.firebaseio.com/"
-
-#define led 10                     // Relay pin (or onboard LED)
+#define SSID "Your WiFi name"
+#define PASSWORD "Your WiFi password"
+#define API_KEY "Firebase API Key"
+#define DB_URL "Firebase Real Time database url"
 
 // ---------------------- SENSOR OBJECTS ----------------------
 ZMPT101B voltageSensor(1, 50.0);
@@ -39,53 +37,36 @@ unsigned long SendHistoryPrevMillis = 0;
 unsigned long OledPrevMillis = 0;
 unsigned long RelayPrevMillis = 0;
 
-float tariffRate = 0.0;
+float tariffRate = 1.824; // Temporal value 
 float TotalEnergy = 0.0;  
 float TotalCost = 0.0;
 int page = 0;
+int ledstate = 0;
 String status = "OFF";
 
-const long intervalOled = 4000;
+const long intervalOled = 1000;
 const char* ntpserver = "pool.ntp.org";
-float currentOffset = 2048.0; // Initial offset for ACS712
-const int NUM_SAMPLES = 500;
 const long gmt = 0;
 const int daylight = 0;
+
+//relay and led status 
+const int led = 4; 
+
+bool wifiConnected = false; // NEW
 
 // ---------------------- FUNCTIONS DECLARATION ----------------------
 void initialization();
 void onload();
-void firebaseSend(float v, float t, float a, float e, float c, float p, String timestamp);
 void oledInfo(float v, float t, float a, float e, float c, float p, String status);
+void firebaseSend(float v, float t, float a, float e, float c, float p, String timestamp);
 
 String getTimeString(){
   struct tm timeinfo;
-  if (!getLocalTime(&timeinfo)) return "NTP Failed";
+  if (!getLocalTime(&timeinfo)) return "NTP Failed"; // Still works offline
   char buf[30];
   strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &timeinfo);
   return String(buf);
 }
-
-float readCurrent() {
-    long sum = 0;
-    for (int i = 0; i < NUM_SAMPLES; i++) {
-      sum += analogRead(0);
-    }
-    float avgRaw = (float)sum / NUM_SAMPLES;
-    // Convert raw ADC to voltage
-    float rawVoltage = (avgRaw / 4095.0) * 3.3;
-    // Convert offset to voltage
-    float offsetVoltage = (currentOffset / 4095.0) * 3.3;
-    // Difference from zero-current voltage
-    float diff = rawVoltage - offsetVoltage;
-    // Convert to current in Amps (mV / sensitivity)
-    float current = (diff * 1000.0) / sensitive;
-    // Filter out tiny noise below 50 mA
-    if (fabs(current) < 0.05) {
-      current = 0.0;
-    }
-    return current;
-  }
 
 // ---------------------- SETUP ----------------------
 void setup() {
@@ -93,97 +74,99 @@ void setup() {
   delay(1000);
 
   temp.begin();
-  initialization();
   voltageSensor.setSensitivity(SENSITIVITY);
   oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-  analogSetAttenuation(ADC_11db);  
   pinMode(led, OUTPUT);
 
   oled.clearDisplay();
   oled.display();
   onload();
+  initialization();
   Serial.println("___ATU Fridge Monitoring System___");
   Serial.println("   _____System Initiated_____");
 
-  // Get TariffRate, Energy & Cost once from DB
-  if (Firebase.RTDB.getFloat(&data, "Fridge/Consumption/TariffRate")) {
-    tariffRate = data.floatData();
-  }
-  if (Firebase.RTDB.getFloat(&data, "Fridge/Consumption/Energy")) {
-    TotalEnergy = data.floatData();
-  }
-  if (Firebase.RTDB.getFloat(&data, "Fridge/Consumption/Cost")) {
-    TotalCost = data.floatData();
+  if (wifiConnected) { // NEW → Only fetch from Firebase if WiFi is ok
+    if (Firebase.RTDB.getFloat(&data, "Fridge/Consumption/TariffRate")) {
+      tariffRate = data.floatData();
+    }
+    if (Firebase.RTDB.getFloat(&data, "Fridge/Consumption/Energy")) {
+      TotalEnergy = data.floatData();
+    }
+    if (Firebase.RTDB.getFloat(&data, "Fridge/Consumption/Cost")) {
+      TotalCost = data.floatData();
+    }
   }
 
-  // Calibrate ACS712 offset
-  // long sum = 0;
-  // for (int i = 0; i < NUM_SAMPLES; i++) {
-  //   sum += analogRead(0);   
-  //   delay(2);
-  // }
-  // currentOffset = (float)sum / NUM_SAMPLES;
-  // Serial.print("ACS712 Offset (raw ADC): ");
-  // Serial.println(currentOffset);
+  Serial.println("Calibrating ACS712, make sure no load is connected...");
+  sensor.autoMidPoint();  // calibrate midpoint automatically
+  Serial.print("MidPoint = ");
+  Serial.println(sensor.getMidPoint());
 
+  digitalWrite(led, HIGH);   // Start with Relay ON
 }
 
 // ---------------------- LOOP ----------------------
 void loop() {
-  readCurrent(); // Call once to stabilize reading
   temp.requestTemperatures();
   float tempCelcius = temp.getTempCByIndex(0);
   float voltage = voltageSensor.getRmsVoltage();
 
-  // int mA = sensor.mA_AC(100);      // average over 100 samples
-  float CurrentSensor = readCurrent(); // in Amps
+  int mA = sensor.mA_AC(200);      
+  float CurrentSensor = mA  / 1000.0; 
+
+  if (voltage <= 10) { voltage = 0; CurrentSensor = 0; } 
+  if (CurrentSensor <= 0.1) CurrentSensor = 0;
 
   float Power = voltage * CurrentSensor; 
-  float EnergyKwh = (Power / 1000.0) * (1.0 / 3600.0); // kWh per second
+  float EnergyKwh = (Power / 1000.0) * (1.0 / 3600.0); 
   TotalEnergy += EnergyKwh;
   TotalCost += EnergyKwh * tariffRate;
   String timestamp = getTimeString();
 
-  // if (tempCelcius <= -125) tempCelcius = 0.0;
-  if (voltage <= 10) { voltage = 0; CurrentSensor = 0; } 
-  if (CurrentSensor <= 0.1) CurrentSensor = 0;
-
-  // Debug printing
   Serial.printf("Temperature: %.2f °C | Voltage: %.1f V | Current: %.2f A\n", tempCelcius, voltage, CurrentSensor);
   Serial.printf("Power: %.1f W | Energy: %.2f kWh | Cost: %.3f GHS\n", Power, TotalEnergy, TotalCost);
   Serial.printf("Time: %s\n", timestamp.c_str());
 
-  firebaseSend(voltage, tempCelcius, CurrentSensor, TotalEnergy, TotalCost, Power, timestamp);
+  // OLED always updates
   oledInfo(voltage, tempCelcius, CurrentSensor, TotalEnergy, TotalCost, Power, status);
+
+  // Firebase only runs if WiFi is connected
+  if (wifiConnected) {
+    firebaseSend(voltage, tempCelcius, CurrentSensor, TotalEnergy, TotalCost, Power, timestamp);
+  }
 }
 
 // ---------------------- INITIALIZATION ----------------------
 void initialization(){
   WiFi.setHostname("Refrigerator Monitoring System");
   WiFi.begin(SSID, PASSWORD);
+
   Serial.print("Connecting to WiFi ");
-  while (WiFi.status() != WL_CONNECTED){
+  unsigned long startAttempt = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - startAttempt < 1000){
     Serial.print(".");
     delay(500);
   }
-  Serial.println("\nConnected to WiFi.");
 
-  configTime(gmt, daylight, ntpserver);
+  if (WiFi.status() == WL_CONNECTED) {
+    wifiConnected = true;
+    Serial.println("\nConnected to WiFi.");
+    configTime(gmt, daylight, ntpserver);
 
-  config.api_key = API_KEY;
-  config.database_url = DB_URL;
-  auth.user.email = "fridgemonitoring@asiedudevelopmenthub.com";
-  auth.user.password = "fridgemonitoring";
+    config.api_key = API_KEY;
+    config.database_url = DB_URL;
+    auth.user.email = "fridgemonitoring@asiedudevelopmenthub.com";
+    auth.user.password = "fridgemonitoring";
 
-  Firebase.begin(&config, &auth);
-  Firebase.reconnectWiFi(true);
-  Serial.print("Getting UID ......");
-  while(auth.token.uid == ""){
-    Serial.print(".");
-    delay(500);
+    Firebase.begin(&config, &auth);
+    Firebase.reconnectWiFi(true);
+    Serial.println("Firebase ready.");
+  } else {
+    wifiConnected = false; // NEW
+    Serial.println("\nWiFi not connected. Running in offline mode!");
   }
-  Serial.println("\nFirebase ready.");
 }
+
 
 // ---------------------- FIREBASE ----------------------
 void firebaseSend(float v, float t, float a, float e, float c, float p, String timestamp){
@@ -227,25 +210,34 @@ void firebaseSend(float v, float t, float a, float e, float c, float p, String t
       if (Firebase.RTDB.getInt(&data, "Fridge/Controls/Relay")) {
         int relayCommand = data.intData();
 
-        if (v > 255 || v < 190) {
-          digitalWrite(led, LOW);
-          relayCommand = 0;  
-          status = "OFF";
-          Firebase.RTDB.setInt(&data, "Fridge/Controls/Relay", 0);
+    // Default ON
+        int ledState = HIGH;
+        status = "OFF";
+
+        if (relayCommand == 1) {
+            // Only allow ON if voltage is safe
+            if (v >= 180 && v <= 260) {
+                digitalWrite(led, HIGH);
+                ledState = HIGH;
+                status = "ON";
+            } else {
+                // Voltage unsafe, keep it OFF
+                digitalWrite(led, LOW);
+                ledState = LOW;
+                status = "OFF";
+            }
         } else {
-          if (relayCommand == 1) {
-            digitalWrite(led, HIGH);
-            status = "ON";
-          } else {
+            // Firebase says OFF
             digitalWrite(led, LOW);
+            ledState = LOW;
             status = "OFF";
-          }
         }
 
-        int ledState = digitalRead(led); 
-        Firebase.RTDB.setInt(&data, "Fridge/Controls/Relay", ledState);
+        // Report actual state back to Firebase
+        int ledStatus = digitalRead(led);
+        Firebase.RTDB.setInt(&data, "Fridge/Controls/Status", ledStatus);
       }
-    }
+    } 
   }
 }
 
@@ -301,11 +293,23 @@ void oledInfo(float v, float t, float a, float e, float c, float p, String statu
       oled.setCursor(5, 40); oled.println("System " + status);
 
     } else if (page == 2){
+      bool invalid = false;
+      if (t <= -126) {
+        invalid = true;
+      }
+
       oled.drawLine(0, 64, 128, 0, SSD1306_WHITE);
       oled.setTextSize(1);
       oled.setCursor(5, 1); oled.println("Temperature: ");
-      oled.setCursor(5, 16); oled.setTextSize(2); oled.print(t, 1); oled.print((char)247); oled.println("C");
-
+      oled.setCursor(5, 16); oled.setTextSize(2);
+      if (invalid) {
+        oled.println("N/A");
+      } else {
+        oled.print(t, 1); 
+        oled.print((char)247); 
+        oled.println("C");
+      }
+      
       oled.setTextSize(1);
       oled.setCursor(80, 30); oled.println("Cost: ");
       oled.setCursor(45, 50); oled.setTextSize(2); oled.print(c, 2); oled.println("GHS");

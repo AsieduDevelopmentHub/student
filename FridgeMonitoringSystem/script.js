@@ -17,9 +17,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
-// Tariff (GHS/kWh) 
-const tariffRate = 1.5;
-
 // State
 let totalEnergy = 0; // kWh
 let currentCost = 0; // GHS
@@ -82,7 +79,9 @@ const costGraph = new Chart(costCard, {
 const tempRef  = ref(db, "Fridge/Sensors/Temperature");
 const voltRef  = ref(db, "Fridge/Sensors/Voltage");
 const currRef  = ref(db, "Fridge/Sensors/Current");
+const statusRef = ref(db, "Fridge/Controls/Status");
 const relayRef = ref(db, "Fridge/Controls/Relay");
+
 const powerRef = ref(db, "Fridge/Consumption/Wattage");
 const kWhRef = ref(db, "Fridge/Consumption/Energy");
 const costRef = ref(db, "Fridge/Consumption/Cost");
@@ -167,16 +166,16 @@ onValue(historyRef, (snapshot) => {
       for (let time in history[date]) {
         let record = history[date][time];
 
-        // ---- Table row ----
-        let row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${pickedDate} ${time}</td>
-          <td>${record.Voltage}</td>
-          <td>${record.Current}</td>
-          <td>${record.Energy}</td>
-          <td>${record.Cost}</td>
-        `;
-        tbody.appendChild(row);
+        // // ---- Table row ----
+        // let row = document.createElement("tr");
+        // row.innerHTML = `
+        //   <td>${pickedDate} ${time}</td>
+        //   <td>${record.Voltage}</td>
+        //   <td>${record.Current}</td>
+        //   <td>${record.Energy}</td>
+        //   <td>${record.Cost}</td>
+        // `;
+        // tbody.appendChild(row);
 
         // ---- Add to chart ----
         costGraph.data.labels.push(`${time}`);
@@ -236,8 +235,6 @@ document.getElementById("fetchLogs").addEventListener("click", () => {
   onValue(ref(db, "Fridge/History/" + pickedDate), (snapshot) => {
     const logs = snapshot.val();
     tbody.innerHTML = "";
-    // costGraph.data.labels = [];
-    // costGraph.data.datasets[0].data = [];
 
     if (logs) {
       for (let time in logs) {
@@ -247,6 +244,7 @@ document.getElementById("fetchLogs").addEventListener("click", () => {
         let row = document.createElement("tr");
         row.innerHTML = `
           <td>${pickedDate} ${time}</td>
+          <td>${record.Temperature}</td>
           <td>${record.Voltage}</td>
           <td>${record.Current}</td>
           <td>${record.Energy}</td>
@@ -262,7 +260,6 @@ document.getElementById("fetchLogs").addEventListener("click", () => {
 
 
 const rstMsg = document.getElementById("rst");
-
 // Reset device
 window.resetDevice = function() {
     totalEnergy = 0;
@@ -307,20 +304,6 @@ window.resetDevice = function() {
     }, 10000);
 }
 
-// Relay control
-// window.toggleRelay = (state) => set(relayRef, state);
-// const msg = document.getElementById("msg");
-// if(msg){
-//     onValue(relayRef, snap => {
-//         const state = snap.val() ? "ON" : "OFF";
-//         msg.textContent = `System is ${state}`;
-//         msg.style.color = snap.val() ? "#16a34a" : "#dc2626"; // green for ON, red for OFF
-//         console.log("Relay snapshot:", snap.val());
-//     });
-// }
-
-// const relayRef = ref(db, "Fridge/Controls/Relay");   // Relay control
-
 // Toggle relay (true/false or 1/0)
 window.toggleRelay = (state) => set(relayRef, state);
 
@@ -328,14 +311,13 @@ window.toggleRelay = (state) => set(relayRef, state);
 const msg = document.getElementById("msg");
 
 if (msg) {
-  onValue(relayRef, (snap) => {
+  onValue(statusRef, (snap) => {
     let val = snap.val();
-
     // Normalize: accept 1/0 or true/false
     let isOn = (val === true || val === 1 || val === "1");
     msg.textContent = `System is ${isOn ? "ON" : "OFF"}`;
     msg.style.color = isOn ? "#16a34a" : "#dc2626"; // green/red
-    console.log("Relay snapshot:", val);
+    console.log("Relay status:", val);
   });
 }
 
