@@ -7,6 +7,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
         :root {
             --normal: #28a745;
@@ -63,7 +65,7 @@
             position: absolute;
             top: 85%;
             left: 50%;
-          transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
             font-size: 2rem;
             font-weight: 700;
             z-index: 10;
@@ -72,13 +74,13 @@
         }
 
         .gauge-unit {
-            font-size: 1.23rem;
+            font-size: 1rem;
             color: var(--text-light);
             margin-left: 2px;
         }
 
         .gauge-label {
-          text-align: center;
+            text-align: center;
             font-weight: 600;
             color: var(--text-dark);
             margin-bottom: 15px;
@@ -139,6 +141,33 @@
             font-size: 0.9rem;
             display: inline-block;
             margin-left: 15px;
+        }
+
+        .history-controls {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .table th {
+            position: sticky;
+            top: 0;
+            background-color: #4a6580;
+            color: white;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
         }
 
         @media (max-width: 768px) {
@@ -306,12 +335,74 @@
             </div>
         </div>
 
+        <!-- Historical Data Table Section -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title mb-4">
+                    <i class="fas fa-history me-2"></i> Historical Data Log
+                </h5>
+                
+                <div class="history-controls mb-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="dateSelector" class="form-label">Select Date:</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control" id="dateSelector">
+                                <button class="btn btn-primary" type="button" id="fetchHistoryBtn">
+                                    <i class="fas fa-search me-1"></i> Fetch Data
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <div class="form-text">Select a date to view historical sensor data</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Air Quality (PPM)</th>
+                                <th>Vibration</th>
+                                <th>Tilt Angle (°)</th>
+                                <th>Temperature (°C)</th>
+                                <th>Humidity (%)</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            <tr>
+                                <td colspan="7" class="text-center py-4">Select a date to load historical data</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <div class="last-updated">
             <i class="fas fa-sync-alt me-1"></i> <span id="updateTimer">Updating in 5s</span>
         </div>
     </div>
 
     <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC0ScXmzo0-O2Vsxjpp2nTDmJkLETobEQg",
+            authDomain: "v0ai-real.firebaseapp.com",
+            databaseURL: "https://v0ai-real-default-rtdb.firebaseio.com",
+            projectId: "v0ai-real",
+            storageBucket: "v0ai-real.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
         // Alert thresholds (should match your ESP32 code)
         const thresholds = {
             airQuality: { warning: 150, critical: 300, max: 500 },
@@ -577,6 +668,77 @@
             }
         });
 
+        // Fetch historical data from Firebase
+        function fetchHistoricalData(date) {
+            const tableBody = document.getElementById('historyTableBody');
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4"><div class="spinner-border text-primary" role="status"></div></td></tr>';
+            
+            const datePath = `Machinery/sensor_data/${date}`;
+            
+            database.ref(datePath).once('value')
+                .then((snapshot) => {
+                    const data = snapshot.val();
+                    tableBody.innerHTML = '';
+                    
+                    if (!data) {
+                        tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4">No data available for selected date</td></tr>';
+                        return;
+                    }
+                    
+                    // Convert object to array and sort by time
+                    const dataArray = Object.entries(data).map(([time, values]) => ({
+                        time,
+                        ...values
+                    })).sort((a, b) => a.time.localeCompare(b.time));
+                    
+                    // Populate table
+                    dataArray.forEach(item => {
+                        const row = document.createElement('tr');
+                        
+                        // Determine overall status for this reading
+                        let status = 'normal';
+                        if (item.air_quality >= thresholds.airQuality.critical ||
+                            item.vibration >= thresholds.vibration.critical ||
+                            item.tilt_angle >= thresholds.tiltAngle.critical ||
+                            item.temperature >= thresholds.temperature.critical ||
+                            item.humidity >= thresholds.humidity.critical) {
+                            status = 'critical';
+                        } else if (item.air_quality >= thresholds.airQuality.warning ||
+                                   item.vibration >= thresholds.vibration.warning ||
+                                   item.tilt_angle >= thresholds.tiltAngle.warning ||
+                                   item.temperature >= thresholds.temperature.warning ||
+                                   item.humidity >= thresholds.humidity.warning) {
+                            status = 'warning';
+                        }
+                        
+                        let statusBadge = '';
+                        if (status === 'normal') {
+                            statusBadge = '<span class="status-badge" style="background-color: var(--normal); color: white;">Normal</span>';
+                        } else if (status === 'warning') {
+                            statusBadge = '<span class="status-badge" style="background-color: var(--warning); color: black;">Warning</span>';
+                        } else {
+                            statusBadge = '<span class="status-badge" style="background-color: var(--critical); color: white;">Critical</span>';
+                        }
+                        
+                        row.innerHTML = `
+                            <td>${item.time}</td>
+                            <td>${item.air_quality || '--'}</td>
+                            <td>${item.vibration || '--'}</td>
+                            <td>${item.tilt_angle ? item.tilt_angle.toFixed(1) : '--'}</td>
+                            <td>${item.temperature ? item.temperature.toFixed(1) : '--'}</td>
+                            <td>${item.humidity ? item.humidity.toFixed(1) : '--'}</td>
+                            <td>${statusBadge}</td>
+                        `;
+                        
+                        tableBody.appendChild(row);
+                    });
+                })
+                .catch((error) => {
+                    console.error('Error fetching historical data:', error);
+                    tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4">Error loading data</td></tr>';
+                });
+        }
+
         // Simulate data updates
         function updateData() {
             // Simulate sensor data changes
@@ -629,14 +791,30 @@
             initGauges();
             updateData();
             
+            // Set today's date as default
+            const today = new Date();
+            const formattedDate = today.toISOString().split('T')[0];
+            document.getElementById('dateSelector').value = formattedDate;
+            
+            // Fetch today's historical data by default
+            fetchHistoricalData(formattedDate);
+            
+            // Add event listener for fetch button
+            document.getElementById('fetchHistoryBtn').addEventListener('click', () => {
+                const selectedDate = document.getElementById('dateSelector').value;
+                if (selectedDate) {
+                    fetchHistoricalData(selectedDate);
+                }
+            });
+            
             // Update data every 5 seconds
-            setInterval(updateData, 5000);
+            setInterval(updateData, 10000);
             
             // Update countdown timer
-            let countdown = 5;
+            let countdown = 10;
             setInterval(() => {
                 countdown--;
-                if (countdown === 0) countdown = 5;
+                if (countdown === 0) countdown = 10;
                 document.getElementById('updateTimer').textContent = 'Updating in ' + countdown + 's';
             }, 1000);
         }
