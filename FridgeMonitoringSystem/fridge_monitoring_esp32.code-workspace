@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../../../../Documents/PlatformIO/Projects/fridge_monitoring_esp32"
+		},
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "student",
+		"git.ignoreLimitWarning": true
+	}
+}

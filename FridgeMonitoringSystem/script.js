@@ -17,9 +17,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
-// Tariff (GHS/kWh) 
-const tariffRate = 1.5;
-
 // State
 let totalEnergy = 0; // kWh
 let currentCost = 0; // GHS
@@ -82,7 +79,9 @@ const costGraph = new Chart(costCard, {
 const tempRef  = ref(db, "Fridge/Sensors/Temperature");
 const voltRef  = ref(db, "Fridge/Sensors/Voltage");
 const currRef  = ref(db, "Fridge/Sensors/Current");
+const statusRef = ref(db, "Fridge/Controls/Status");
 const relayRef = ref(db, "Fridge/Controls/Relay");
+
 const powerRef = ref(db, "Fridge/Consumption/Wattage");
 const kWhRef = ref(db, "Fridge/Consumption/Energy");
 const costRef = ref(db, "Fridge/Consumption/Cost");
@@ -97,11 +96,13 @@ onValue(tempRef, snap => {
     tempGauge.data.datasets[0].data[0] = Math.min(Math.max(Temperature, 0), max);
     tempGauge.data.datasets[0].data[1] = Math.max(max - Temperature, 0);
     tempGauge.update();
-    document.getElementById("tempVal").textContent = `${val.toFixed(1)} °C`;
-    if (Temperature <= -126){
-      document.getElementById("tempVal").textContent = `N/A`;
+    if (Temperature <= -126) {
+        document.getElementById("tempVal").textContent = `N/A`;
+    } else {
+        document.getElementById("tempVal").textContent = `${Temperature.toFixed(1)} °C`;
     }
 });
+
 
 onValue(voltRef, snap => {
     voltage = Number(snap.val()) || 0;
@@ -165,16 +166,16 @@ onValue(historyRef, (snapshot) => {
       for (let time in history[date]) {
         let record = history[date][time];
 
-        // ---- Table row ----
-        let row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${pickedDate} ${time}</td>
-          <td>${record.Voltage}</td>
-          <td>${record.Current}</td>
-          <td>${record.Energy}</td>
-          <td>${record.Cost}</td>
-        `;
-        tbody.appendChild(row);
+        // // ---- Table row ----
+        // let row = document.createElement("tr");
+        // row.innerHTML = `
+        //   <td>${pickedDate} ${time}</td>
+        //   <td>${record.Voltage}</td>
+        //   <td>${record.Current}</td>
+        //   <td>${record.Energy}</td>
+        //   <td>${record.Cost}</td>
+        // `;
+        // tbody.appendChild(row);
 
         // ---- Add to chart ----
         costGraph.data.labels.push(`${time}`);
@@ -234,8 +235,6 @@ document.getElementById("fetchLogs").addEventListener("click", () => {
   onValue(ref(db, "Fridge/History/" + pickedDate), (snapshot) => {
     const logs = snapshot.val();
     tbody.innerHTML = "";
-    // costGraph.data.labels = [];
-    // costGraph.data.datasets[0].data = [];
 
     if (logs) {
       for (let time in logs) {
@@ -245,27 +244,14 @@ document.getElementById("fetchLogs").addEventListener("click", () => {
         let row = document.createElement("tr");
         row.innerHTML = `
           <td>${pickedDate} ${time}</td>
+          <td>${record.Temperature}</td>
           <td>${record.Voltage}</td>
           <td>${record.Current}</td>
           <td>${record.Energy}</td>
           <td>${record.Cost}</td>
         `;
         tbody.appendChild(row);
-
-        // ---- Chart ----
-        // costGraph.data.labels.push(time);
-        // costGraph.data.datasets[0].data.push(Number(record.Cost));
       }
-
-      // Limit chart points
-    //    const MAX_POINTS = 10;
-    //    costGraph.data.labels.push(time);
-    //    costGraph.data.datasets[0].data.push(Number(record.Cost));
-    //   if (costGraph.data.labels.length > MAX_POINTS) {
-    //     costGraph.data.labels = costGraph.data.labels.slice(-MAX_POINTS);
-    //     costGraph.data.datasets[0].data = costGraph.data.datasets[0].data.slice(-MAX_POINTS);
-    //   }
-    //   costGraph.update();
     } else {
       tbody.innerHTML = `<tr><td colspan="5" style="color:red;">No logs for ${pickedDate}</td></tr>`;
     }
@@ -284,17 +270,6 @@ window.resetDevice = function() {
     tempGauge.data.datasets[0].data[0] = 0;
     voltGauge.data.datasets[0].data[0] = 0;
     currGauge.data.datasets[0].data[0] = 0;
-
-    // tempGauge.update();
-    // voltGauge.update();
-    // currGauge.update();
-
-    // document.getElementById("tempVal").textContent = "0.0 °C";
-    // document.getElementById("voltVal").textContent = "0.0 V";
-    // document.getElementById("currVal").textContent = "0.00 A";
-    // document.getElementById("powerVal").textContent = "0.00 W";
-    // document.getElementById("energyVal").textContent = "0.000000 kWh";
-    // document.getElementById("costVal").textContent = "₵ 0.0000";
 
     costGraph.data.labels = [];
     costGraph.data.datasets[0].data = [];
@@ -329,20 +304,6 @@ window.resetDevice = function() {
     }, 10000);
 }
 
-// Relay control
-// window.toggleRelay = (state) => set(relayRef, state);
-// const msg = document.getElementById("msg");
-// if(msg){
-//     onValue(relayRef, snap => {
-//         const state = snap.val() ? "ON" : "OFF";
-//         msg.textContent = `System is ${state}`;
-//         msg.style.color = snap.val() ? "#16a34a" : "#dc2626"; // green for ON, red for OFF
-//         console.log("Relay snapshot:", snap.val());
-//     });
-// }
-
-// const relayRef = ref(db, "Fridge/Controls/Relay");   // Relay control
-
 // Toggle relay (true/false or 1/0)
 window.toggleRelay = (state) => set(relayRef, state);
 
@@ -350,14 +311,13 @@ window.toggleRelay = (state) => set(relayRef, state);
 const msg = document.getElementById("msg");
 
 if (msg) {
-  onValue(relayRef, (snap) => {
+  onValue(statusRef, (snap) => {
     let val = snap.val();
-
     // Normalize: accept 1/0 or true/false
     let isOn = (val === true || val === 1 || val === "1");
     msg.textContent = `System is ${isOn ? "ON" : "OFF"}`;
     msg.style.color = isOn ? "#16a34a" : "#dc2626"; // green/red
-    console.log("Relay snapshot:", val);
+    console.log("Relay status:", val);
   });
 }
 
