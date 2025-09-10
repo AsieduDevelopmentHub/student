@@ -97,7 +97,7 @@
     </div>
 
     <!-- Cost graph + live number -->
-    <div class="" style="grid-column: span 2;width:90%; margin:auto;">
+    <div class="card" style="grid-column: span 2;width:90%; margin:auto;">
       <h3>Cost (₵) Over Time</h3>
       <canvas id="costGraph" height="160"></canvas>
       <div id="costVal" class="value" style="margin-top:12px">₵ --</div>
@@ -199,7 +199,7 @@
     // ---- Firebase Refs
     const tempRef  = ref(db, "sensors/Body Temperature");
     const voltRef  = ref(db, "sensors/Blood Pressure");
-    const currRef  = ref(db, "sensors/sp02");
+    const currRef  = ref(db, "sensors/Heart Rate");
     const relayRef = ref(db, "controls/lighting");
 
     // ---- Listeners
@@ -262,7 +262,7 @@
         costGraph.data.datasets[0].data.shift();
       }
       costGraph.update();
-    }, 10_000);
+    }, 30_000);
 
     // ---- Relay control
     window.toggleRelay = (state) => set(relayRef, state);
