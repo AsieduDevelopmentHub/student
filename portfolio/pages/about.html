@@ -6,6 +6,8 @@
     <title>About Me - Asiedu Development Hub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/headerFooter.js"></script>
     <style>
         :root {
             --goldenrod: #DAA520;
@@ -73,16 +75,32 @@
             color: var(--dark);
             font-weight: 500;
             transition: color 0.3s;
+            position: relative;
         }
         
         nav ul li a:hover {
             color: var(--goldenrod);
         }
         
+        nav ul li a.active {
+            color: var(--goldenrod);
+        }
+        
+        nav ul li a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--goldenrod);
+        }
+        
         .menu-btn {
             display: none;
             font-size: 1.5rem;
             cursor: pointer;
+            color: var(--dark);
         }
         
         /* Page Header */
@@ -436,74 +454,12 @@
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        /* Responsive Design */
-        @media (max-width: 992px) {
-            .my-story {
-                grid-template-columns: 1fr;
-            }
-            
-            .timeline::after {
-                left: 31px;
-            }
-            
-            .timeline-item {
-                width: 100%;
-                padding-left: 70px;
-                padding-right: 25px;
-            }
-            
-            .left::after, .right::after {
-                left: 18px;
-            }
-            
-            .right {
-                left: 0;
-            }
-            
-            nav ul {
-                display: none;
-            }
-            
-            .menu-btn {
-                display: block;
-            }
-        }
         
-        @media (max-width: 768px) {
-            .page-header h1 {
-                font-size: 2.5rem;
-            }
-            
-            .section-title {
-                font-size: 2rem;
-            }
-            
-            .skills-grid {
-                grid-template-columns: 1fr;
-            }
-        }
     </style>
 </head>
 <body>
     <!-- Header & Navigation -->
-    <header>
-        <div class="logo">
-            <i class="fas fa-code"></i>
-            <span>Asiedu Dev Hub</span>
-        </div>
-        <nav>
-            <ul>
-                <li><a href="../index.html">Home</a></li>
-                <li><a href="about.html">About</a></li>
-                <li><a href="projects.html">Projects</a></li>
-                <li><a href="skills.html">Skills</a></li>
-                <li><a href="contact.html">Contact</a></li>
-            </ul>
-            <div class="menu-btn">
-                <i class="fas fa-bars"></i>
-            </div>
-        </nav>
-    </header>
+    <div id="header-container"> </div>
 
     <!-- Page Header -->
     <section class="page-header">
@@ -638,91 +594,8 @@
     </section>
 
     <!-- Footer -->
-    <footer>
-        <div class="footer-content">
-            <div class="footer-about">
-                <div class="footer-logo">Asiedu Development Hub</div>
-                <p>Creating innovative solutions that connect the physical and digital worlds through web development and embedded systems.</p>
-                <div class="social-links">
-                    <a href="https://github.com/AsieduDevelopmentHub" target="_blank"><i class="fab fa-github"></i></a>
-                    <a href="https://bitly.cx/SCZZT" target="_blank"><i class="fab fa-linkedin"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="https://youtube.com/@asiedudev-hub" target="_blank"><i class="fab fa-youtube"></i></a>
-                </div>
-            </div>
-            
-            <div class="footer-links">
-                <h3>Quick Links</h3>
-                <ul>
-                    <li><a href="../index.html">Home</a></li>
-                    <li><a href="about.html">About</a></li>
-                    <li><a href="projects.html">Projects</a></li>
-                    <li><a href="skills.html">Skills</a></li>
-                    <li><a href="contact.html">Contact</a></li>
-                </ul>
-            </div>
-            
-            <div class="footer-links">
-                <h3>Services</h3>
-                <ul>
-                    <li><a href="#">Web Development</a></li>
-                    <li><a href="#">IoT Solutions</a></li>
-                    <li><a href="#">Embedded Systems</a></li>
-                    <li><a href="#">Consultation</a></li>
-                    <li><a href="#">Project Guidance</a></li>
-                </ul>
-            </div>
-            
-            <div class="footer-links">
-                <h3>Contact Info</h3>
-                <ul>
-                    <li><i class="fas fa-envelope"></i> asiedudev.hub@gmail.com</li>
-                    <li><i class="fas fa-phone"></i> +233 555 257 482</li>
-                    <li><i class="fas fa-map-marker-alt"></i> Ghana</li>
-                </ul>
-            </div>
-        </div>
-        
-        <div class="copyright">
-            <p>&copy; 2025 Asiedu Development Hub. All rights reserved.</p>
-        </div>
-    </footer>
+    <div id="footer-container">  </div>
 
-    <script>
-        // Simple animation for timeline items
-        document.addEventListener('DOMContentLoaded', function() {
-            const timelineItems = document.querySelectorAll('.timeline-item');
-            
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = 1;
-                        entry.target.style.transform = 'translateX(0)';
-                    }
-                });
-            }, {
-                threshold: 0.1
-            });
-            
-            timelineItems.forEach(item => {
-                item.style.opacity = 0;
-                if (item.classList.contains('left')) {
-                    item.style.transform = 'translateX(-50px)';
-                } else {
-                    item.style.transform = 'translateX(50px)';
-                }
-                item.style.transition = 'all 0.5s ease-in-out';
-                observer.observe(item);
-            });
-            
-            // Mobile menu toggle
-            const menuBtn = document.querySelector('.menu-btn');
-            const nav = document.querySelector('nav ul');
-            
-            menuBtn.addEventListener('click', () => {
-                nav.style.display = nav.style.display === 'flex' ? 'none' : 'flex';
-            });
-        });
-    </script>
+    <script src="../js/animation.js"></script>
 </body>
 </html>

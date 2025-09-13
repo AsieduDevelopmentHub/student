@@ -1,0 +1,20 @@
+@use "responsive";
+:root{
+  --background-white: #FFFFFF;
+  --background-beige: #F8F4E3;
+  --text-dark: #333333;
+  --primary: #DAA520;
+  --primary-light: #F5B502;
+  --secondary: #F5F5DC;
+  --secondary-light: #F8F4E3;
+  --accent: #FF5733;
+}
+
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Arial', sans-serif;
+}
+
+

@@ -10,7 +10,7 @@
     <script type="module">
         // Import Firebase functions
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+        import { getDatabase, ref, query, limitToLast, onValue, set }         from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
         // Firebase config
         const firebaseConfig = {
@@ -30,9 +30,9 @@
 
         // Alert thresholds (should match your ESP32 code)
         const thresholds = {
-            airQuality: { warning: 300, critical: 400, max: 500 },
+            airQuality: { warning: 650, critical: 800, max: 1200 },
             vibration: { warning: 500, critical: 800, max: 1000 },
-            tiltAngle: { warning: 15, critical: 30, max: 45 },
+            tiltAngle: { warning: 15, critical: 30, max: 50 },
             temperature: { warning: 35, critical: 40, max: 50 },
             humidity: { warning: 85, critical: 90, max: 100 }
         };
@@ -348,7 +348,7 @@
                 const dataArray = Object.entries(data).map(([time, values]) => ({
                     time,
                     ...values
-                })).sort((a, b) => a.time.localeCompare(b.time));
+                })).sort((b, a) => a.time.localeCompare(b.time));
                 
                 // Populate table
                 dataArray.forEach(item => {
@@ -444,7 +444,7 @@
                     updateHistoricalChart();
                     
                     // Update last updated time
-                    document.getElementById('lastUpdate').textContent = 'Last updated: ' + now.toLocaleTimeString();
+                    //document.getElementById('lastUpdate').textContent = 'Last updated: ' + now.toLocaleTimeString();
                 }
             }, (error) => {
                 console.error('Error in real-time listener:', error);
@@ -480,6 +480,23 @@
                 document.getElementById('updateTimer').textContent = 'Data updates in real-time';
             }, 1000);
         }
+        const historyRef = query(ref(database, 'Machinery/sensor_data'), limitToLast(1));
+
+onValue(historyRef, (snapshot) => {
+    snapshot.forEach((childSnapshot) => {
+        const readings = childSnapshot.val();
+
+        // Each date has multiple times, so dig into last time
+        const times = Object.keys(readings);
+        const lastTime = times[times.length - 1];
+        const latestData = readings[lastTime];
+
+        if (latestData.timestamp) {
+            document.getElementById('lastUpdate').textContent =
+                'Last updated: ' + latestData.timestamp;
+        }
+    });
+});
 
         // Start the dashboard when page loads
         window.onload = initDashboard;
@@ -690,7 +707,7 @@
                     <div class="location-display">
                         <i class="fas fa-map-marker-alt me-2"></i> <span id="location">Loading...</span>
                     </div>
-                    <div class="text-white-50 mt-2" id="lastUpdate">Last updated: Just now</div>
+                    <div class="text-white-50 mt-2" id="lastUpdate">Last updated: Loading...</div>
                 </div>
             </div>
         </div>
