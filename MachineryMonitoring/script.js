@@ -20,8 +20,8 @@
 
         // Alert thresholds (should match your ESP32 code)
         const thresholds = {
-            airQuality: { warning: 300, critical: 400, max: 500 },
-            vibration: { warning: 500, critical: 800, max: 1000 },
+            airQuality: { warning: 650, critical: 800, max: 1400 },
+            vibration: { warning: 550, critical: 800, max: 1000 },
             tiltAngle: { warning: 15, critical: 30, max: 45 },
             temperature: { warning: 35, critical: 40, max: 50 },
             humidity: { warning: 85, critical: 90, max: 100 }
