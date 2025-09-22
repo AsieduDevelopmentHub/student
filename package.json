@@ -1,7 +1,7 @@
 {
   "name": "asiedudevelopmenthub",
   "version": "1.0.0",
-  "description": "Ghana-based web development & embedded systems experts. IoT solutions, custom websites, mobile apps, and tech consultation services. Transforming ideas into intelligent solutions.",
+  "description": "Ghana-based web development & embedded systems experts.",
   "keywords": [
     "web development Ghana",
     "IoT solutions Ghana",
@@ -14,28 +14,15 @@
     "software development services",
     "IoT development Africa"
   ],
-  "homepage": "https://github.com/AsieduDevelopmentHub/student#readme",
-  "bugs": {
-    "url": "https://github.com/AsieduDevelopmentHub/student/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/AsieduDevelopmentHub/student.git"
-  },
-  "license": "ISC",
-  "author": "Asiedu Kwaku Minta",
   "type": "commonjs",
   "main": "Profile/index.html",
   "scripts": {
-    "build": "echo 'No build step needed for static site'",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "echo 'No build needed for static site'",
+    "cap:sync": "npx cap sync"
   },
   "dependencies": {
     "@capacitor/android": "^5.5.1",
     "@capacitor/cli": "^5.5.1",
     "@capacitor/core": "^5.5.1"
-  },
-  "devDependencies": {
-    "@capacitor/assets": "^2.0.4"
   }
 }
