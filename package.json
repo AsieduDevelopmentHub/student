@@ -1,0 +1,32 @@
+{
+  "name": "asiedudevelopmenthub",
+  "version": "1.0.0",
+  "description": "Ghana-based web development & embedded systems experts. IoT solutions, custom websites, mobile apps, and tech consultation services. Transforming ideas into intelligent solutions.",
+  "keywords": [
+    "web development Ghana",
+    "IoT solutions Ghana",
+    "embedded systems",
+    "custom software development",
+    "Ghana web developer",
+    "tech consultation",
+    "mobile app development",
+    "embedded systems programming",
+    "software development services",
+    "IoT development Africa"
+  ],
+  "homepage": "https://github.com/AsieduDevelopmentHub/Portfolio#readme",
+  "bugs": {
+    "url": "https://github.com/AsieduDevelopmentHub/Portfolio/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AsieduDevelopmentHub/Portfolio.git"
+  },
+  "license": "ISC",
+  "author": "Asiedu Kwaku Minta",
+  "type": "commonjs",
+  "main": "./Profile/index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

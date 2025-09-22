@@ -1,0 +1,91 @@
+// Import all layout and page files
+@import 'base/variables';
+@import 'base/mixins';
+@import 'base/reset';
+@import 'layout/header';
+@import 'layout/footer';
+@import 'layout/grid';
+@import 'pages/index';
+@import 'pages/about';
+@import 'pages/projects';
+@import 'pages/skills';
+@import 'pages/contact';
+
+// Global responsive styles
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 $spacing-md;
+}
+
+.section {
+  padding: $spacing-xxl 5%;
+  
+  &__title {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: $spacing-xl;
+    color: $dark;
+    
+    span {
+      color: $goldenrod;
+    }
+  }
+}
+
+.btn {
+  display: inline-block;
+  padding: $spacing-sm $spacing-xl;
+  background: $goldenrod;
+  color: $white;
+  border-radius: 50px;
+  font-weight: $font-weight-semibold;
+  transition: all 0.3s;
+  border: 2px solid $goldenrod;
+  
+  &:hover {
+    background: transparent;
+    color: $goldenrod;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(218, 165, 32, 0.2);
+  }
+  
+  &--outline {
+    background: transparent;
+    color: $goldenrod;
+    
+    &:hover {
+      background: $goldenrod;
+      color: $white;
+    }
+  }
+}
+
+// Responsive utilities
+.hidden-mobile {
+  @include respond-to(mobile) {
+    display: none !important;
+  }
+}
+
+.visible-mobile {
+  display: none !important;
+  
+  @include respond-to(mobile) {
+    display: block !important;
+  }
+}
+
+.text-center {
+  text-align: center;
+}
+
+// Animation classes
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

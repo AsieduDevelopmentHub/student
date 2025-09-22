@@ -75,7 +75,7 @@
             transition: color 0.3s;
         }
         
-        nav ul li a:hover {
+        nav ul li a:hover, nav a:active {
             color: var(--goldenrod);
         }
         
@@ -159,13 +159,13 @@
         /* 3D Hero Visual */
         .hero-visual {
             position: relative;
-            height: 350px;
-            perspective: 1200px;
+            height: 400px;
+            perspective: 1000px;
         }
         
         .cube-container {
-            width: 250px;
-            height: 250px;
+            width: 300px;
+            height: 300px;
             position: absolute;
             top: 50%;
             left: 50%;
@@ -176,8 +176,8 @@
         
         .cube-face {
             position: absolute;
-            width: 250px;
-            height: 250px;
+            width: 300px;
+            height: 300px;
             background: rgba(218, 165, 32, 0.1);
             border: 2px solid var(--goldenrod);
             display: flex;
@@ -194,12 +194,12 @@
             background: rgba(218, 165, 32, 0.2);
         }
         
-        .front { transform: translateZ(125px); }
-        .back { transform: translateZ(-125px) rotateY(180deg); }
-        .right { transform: translateX(125px) rotateY(90deg); }
-        .left { transform: translateX(-125px) rotateY(-90deg); }
-        .top { transform: translateY(-125px) rotateX(90deg); }
-        .bottom { transform: translateY(125px) rotateX(-90deg); }
+        .front { transform: translateZ(150px); }
+        .back { transform: translateZ(-150px) rotateY(180deg); }
+        .right { transform: translateX(150px) rotateY(90deg); }
+        .left { transform: translateX(-150px) rotateY(-90deg); }
+        .top { transform: translateY(-150px) rotateX(90deg); }
+        .bottom { transform: translateY(150px) rotateX(-90deg); }
         
         @keyframes cube-rotate {
             0% { transform: translate(-50%, -50%) rotateX(-20deg) rotateY(0deg); }
@@ -492,36 +492,6 @@
         
         /* Responsive Design */
         @media (max-width: 992px) {
-            nav ul {
-                display: none;
-                flex-direction: column;
-                position: absolute;
-                top: 100%;
-                left: 0;
-                width: 100%;
-                background: var(--white);
-                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-                padding: 1rem 0;
-            }
-            
-            nav ul.show {
-                display: flex;
-            }
-            
-            nav ul li {
-                margin: 0;
-                text-align: center;
-            }
-            
-            nav ul li a {
-                display: block;
-                padding: 1rem;
-            }
-            
-            .menu-btn {
-                display: block;
-            }
-            
             .hero-content {
                 grid-template-columns: 1fr;
                 text-align: center;
@@ -566,7 +536,7 @@
     <header>
         <div class="logo">
             <i class="fas fa-code"></i>
-            <span>Asiedu Dev. Hub</span>
+            <span>Asiedu Dev Hub</span>
         </div>
         <nav>
             <ul>
@@ -591,8 +561,7 @@
         
         <div class="hero-content">
             <div class="hero-text">
-                <h1>Transforming <span>Ideas</span> into <span>Intelligent</span> Solutions</h1>
-                <h2>Innovate | Integrate | Automate </h2>
+                <h1>Bridging the <span>Digital</span> and <span>Physical</span> Worlds</h1>
                 <p>I create innovative web applications and embedded systems that solve real-world problems. From IoT solutions to full-stack web development, I bring ideas to life.</p>
                 <div class="hero-buttons">
                     <a href="pages/projects.html" class="btn">View My Work</a>
@@ -775,6 +744,18 @@
             document.querySelectorAll('.skill-item, .project-card').forEach(item => {
                 observer.observe(item);
             });
+
+             // Add active class to current page link
+            const currentPage = window.location.pathname.split('/').pop();
+            const links = header.querySelectorAll('nav a');
+            
+            links.forEach(link => {
+                const linkPage = link.getAttribute('href');
+                if (currentPage === linkPage) {
+                    link.classList.add('active');
+                }
+            });
+            
             
             // Mobile menu toggle
             const menuBtn = document.querySelector('.menu-btn');

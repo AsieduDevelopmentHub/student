@@ -37,14 +37,12 @@
             });
             
             // Mobile menu toggle
-            const menuBtn = header.querySelector('.menu-btn');
-            const nav = header.querySelector('nav ul');
+            const menuBtn = document.querySelector('.menu-btn');
+            const nav = document.querySelector('nav ul');
             
-            if (menuBtn && nav) {
-                menuBtn.addEventListener('click', () => {
-                    nav.classList.toggle('show');
-                });
-            }
+            menuBtn.addEventListener('click', () => {
+                nav.style.display = nav.style.display === 'flex' ? 'none' : 'flex';
+            });
         }
         
         // Create Footer Component

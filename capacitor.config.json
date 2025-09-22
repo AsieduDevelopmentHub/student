@@ -1,0 +1,10 @@
+{
+  "appId": "com.asiedudevhub.app",
+  "appName": "Asiedu Dev Hub",
+  "webDir": "Profile",
+  "bundledWebRuntime": false,
+   "server": {
+    "url": "https://asiedudevelopmenthub.github.io/Portfolio",
+    "cleartext": true
+  }
+}

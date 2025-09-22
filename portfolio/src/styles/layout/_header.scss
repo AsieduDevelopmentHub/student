@@ -1,0 +1,95 @@
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+  padding: $spacing-md 5%;
+  @include flex-between;
+  
+  &__logo {
+    @include flex-center;
+    font-weight: $font-weight-bold;
+    font-size: 1.5rem;
+    color: $goldenrod;
+    
+    span {
+      color: $dark;
+    }
+  }
+  
+  &__nav {
+    ul {
+      display: flex;
+      gap: $spacing-lg;
+      
+      li {
+        a {
+          font-weight: $font-weight-medium;
+          transition: color 0.3s;
+          position: relative;
+          
+          &:hover {
+            color: $goldenrod;
+          }
+          
+          &.active {
+            color: $goldenrod;
+            
+            &::after {
+              content: '';
+              position: absolute;
+              bottom: -5px;
+              left: 0;
+              width: 100%;
+              height: 2px;
+              background-color: $goldenrod;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  &__menu-btn {
+    display: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: $dark;
+  }
+  
+  @include respond-to(tablet) {
+    &__nav {
+      ul {
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: $white;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        padding: $spacing-sm 0;
+        
+        &.show {
+          display: flex;
+        }
+        
+        li {
+          text-align: center;
+          
+          a {
+            display: block;
+            padding: $spacing-sm;
+          }
+        }
+      }
+    }
+    
+    &__menu-btn {
+      display: block;
+    }
+  }
+}

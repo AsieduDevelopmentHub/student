@@ -1,0 +1,38 @@
+import React, { useState } from 'react';
+import './Header.scss';
+
+const Header = () => {
+  const [menuOpen, setMenuOpen] = useState(false);
+  
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
+  };
+  
+  // Get current page for active link
+  const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+  
+  return (
+    <header className="header">
+      <div className="header__logo">
+        <i className="fas fa-code"></i>
+        <span>Asiedu Dev Hub</span>
+      </div>
+      
+      <nav className="header__nav">
+        <ul className={menuOpen ? 'show' : ''}>
+          <li><a href="index.html" className={currentPage === 'index.html' ? 'active' : ''}>Home</a></li>
+          <li><a href="about.html" className={currentPage === 'about.html' ? 'active' : ''}>About</a></li>
+          <li><a href="projects.html" className={currentPage === 'projects.html' ? 'active' : ''}>Projects</a></li>
+          <li><a href="skills.html" className={currentPage === 'skills.html' ? 'active' : ''}>Skills</a></li>
+          <li><a href="contact.html" className={currentPage === 'contact.html' ? 'active' : ''}>Contact</a></li>
+        </ul>
+        
+        <button className="header__menu-btn" onClick={toggleMenu}>
+          <i className="fas fa-bars"></i>
+        </button>
+      </nav>
+    </header>
+  );
+};
+
+export default Header;
