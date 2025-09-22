@@ -7,51 +7,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Clean environment
-      run: |
-        npm cache clean --force
-        rm -f package-lock.json
-        rm -rf node_modules
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
+    - uses: actions/checkout@v4
+    
+    - uses: actions/setup-node@v4
       with:
         node-version: '18'
-
-    - name: Install with network retry
-      run: |
-        n=0
-        until [ $n -ge 3 ]
-        do
-          npm install --no-cache --prefer-offline --no-audit && break
-          n=$((n+1))
-          echo "Install attempt $n failed, retrying..."
-          sleep 5
-        done
-
-    - name: Initialize Capacitor
-      run: |
-        npx cap init "Asiedu Dev Hub" "com.asiedudevhub.app" --web-dir Profile
-        npx cap add android
-        npx cap sync
-
-    - name: Setup Java
-      uses: actions/setup-java@v4
+        
+    - run: npm install
+    
+    - run: npx cap sync
+    
+    - uses: actions/setup-java@v4
       with:
-        distribution: 'temurin'
         java-version: '17'
-
-    - name: Build Android APK
-      run: |
-        cd android
-        chmod +x ./gradlew
-        ./gradlew assembleDebug
-
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
+        distribution: 'temurin'
+        
+    - run: cd android && ./gradlew assembleDebug
+        
+    - uses: actions/upload-artifact@v4
       with:
-        name: app-debug
+        name: android-apk
         path: android/app/build/outputs/apk/debug/app-debug.apk
