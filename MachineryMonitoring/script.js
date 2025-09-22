@@ -338,7 +338,7 @@
                 const dataArray = Object.entries(data).map(([time, values]) => ({
                     time,
                     ...values
-                })).sort((a, b) => a.time.localeCompare(b.time));
+                })).sort((b, a) => a.time.localeCompare(b.time));
                 
                 // Populate table
                 dataArray.forEach(item => {
