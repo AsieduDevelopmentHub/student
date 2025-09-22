@@ -1,0 +1,216 @@
+# =========================
+# Dependencies
+# =========================
+node_modules/
+/.pnp
+.pnp.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# =========================
+# Capacitor Specific
+# =========================
+# Capacitor platforms
+android/
+ios/
+electron/
+.capacitor/
+
+# Capacitor build files
+capacitor.config.ts.timestamp
+
+# =========================
+# Build Outputs
+# =========================
+dist/
+build/
+.out/
+.next/
+.nuxt/
+
+# =========================
+# Environment Variables
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# IDE & Editor Files
+# =========================
+# VS Code
+.vscode/
+!.vscode/extensions.json
+*.code-workspace
+
+# IntelliJ
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Eclipse
+.settings/
+bin/
+tmp/
+*.tmp
+*.temp
+*.classpath
+*.project
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# =========================
+# Logs
+# =========================
+logs
+*.log
+yarn-metadata.json
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# =========================
+# Runtime data
+# =========================
+*.pid
+*.seed
+*.pid.lock
+*.tgz
+
+# =========================
+# Coverage directory used by tools like istanbul
+# =========================
+coverage/
+*.lcov
+
+# =========================
+# nyc test coverage
+# =========================
+.nyc_output
+
+# =========================
+# Grunt intermediate storage
+# =========================
+.grunt
+
+# =========================
+# Bower dependency directory
+# =========================
+bower_components
+
+# =========================
+# node-waf configuration
+# =========================
+.lock-wscript
+
+# =========================
+# Compiled binary addons
+# =========================
+build/Release
+
+# =========================
+# Dependency directories
+# =========================
+jspm_packages/
+
+# =========================
+# Optional npm cache directory
+# =========================
+.npm
+
+# =========================
+# Optional eslint cache
+# =========================
+.eslintcache
+
+# =========================
+# Microbundle cache
+# =========================
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# =========================
+# Optional REPL history
+# =========================
+.node_repl_history
+
+# =========================
+# Output of 'npm pack'
+# =========================
+*.tgz
+
+# =========================
+# Yarn Integrity file
+# =========================
+.yarn-integrity
+
+# =========================
+# dotenv environment variables file
+# =========================
+.env
+.env.test
+
+# =========================
+# parcel-bundler cache
+# =========================
+.cache
+.parcel-cache
+
+# =========================
+# next.js build output
+# =========================
+.next
+
+# =========================
+# nuxt.js build output
+# =========================
+.nuxt
+
+# =========================
+# gatsby files
+# =========================
+.cache/
+public
+
+# =========================
+# vuepress build output
+# =========================
+.vuepress/dist
+
+# =========================
+# Serverless directories
+# =========================
+.serverless/
+
+# =========================
+# FuseBox cache
+# =========================
+.fusebox/
+
+# =========================
+# DynamoDB Local files
+# =========================
+.dynamodb/
+
+# =========================
+# TernJS port file
+# =========================
+.tern-port
