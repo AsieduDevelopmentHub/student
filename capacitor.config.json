@@ -4,7 +4,7 @@
   "webDir": "Profile",
   "bundledWebRuntime": false,
    "server": {
-    "url": "https://asiedudevelopmenthub.github.io/Portfolio",
+    "url": "https://asiedudevelopmenthub.github.io/student",
     "cleartext": true
   }
 }

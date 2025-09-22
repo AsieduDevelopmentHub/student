@@ -14,19 +14,28 @@
     "software development services",
     "IoT development Africa"
   ],
-  "homepage": "https://github.com/AsieduDevelopmentHub/Portfolio#readme",
+  "homepage": "https://github.com/AsieduDevelopmentHub/student#readme",
   "bugs": {
-    "url": "https://github.com/AsieduDevelopmentHub/Portfolio/issues"
+    "url": "https://github.com/AsieduDevelopmentHub/student/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AsieduDevelopmentHub/Portfolio.git"
+    "url": "git+https://github.com/AsieduDevelopmentHub/student.git"
   },
   "license": "ISC",
   "author": "Asiedu Kwaku Minta",
   "type": "commonjs",
-  "main": "./Profile/index.html",
+  "main": "Profile/index.html",
   "scripts": {
+    "build": "echo 'No build step needed for static site'",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@capacitor/android": "^5.5.1",
+    "@capacitor/cli": "^5.5.1",
+    "@capacitor/core": "^5.5.1"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^2.0.4"
   }
 }
