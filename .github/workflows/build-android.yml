@@ -11,33 +11,38 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          submodules: true   # Ensure submodules are checked out if you use them
+        uses: actions/checkout@v4  # Use v4 instead of v3
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
-
-      - name: Clean npm cache
-        run: npm cache clean --force
+          cache: 'npm'
 
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
+        run: |
+          npm install --legacy-peer-deps
 
-      # If you need to build the Android APK, update this command as needed:
+      - name: Initialize Capacitor
+        run: |
+          npx cap init "Asiedu Dev Hub" "com.asiedudevhub.app" --web-dir Profile
+          npx cap add android
+          npx cap sync
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: Build Android APK
-        run: npm run build:android
+        run: |
+          cd android
+          chmod +x ./gradlew
+          ./gradlew assembleDebug
 
-      # Optional: Upload the APK as an artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: android/app/build/outputs/apk/debug/app-debug.ap
-
-      # (Optional) Clean up
-      - name: Post-job cleanup
-        run: |
-          echo "Cleaning up after build"
+          path: android/app/build/outputs/apk/debug/app-debug.apk
