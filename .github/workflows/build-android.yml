@@ -7,60 +7,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
       with:
         node-version: '18'
-
-    - name: Check if we can run capacitor
-      id: check_capacitor
-      run: |
-        if [ -f "node_modules/@capacitor/cli/bin/capacitor" ]; then
-          echo "capacitor_available=true" >> $GITHUB_OUTPUT
-        else
-          echo "capacitor_available=false" >> $GITHUB_OUTPUT
-        fi
-
-    - name: Install dependencies only if needed
-      if: steps.check_capacitor.outputs.capacitor_available == 'false'
-      run: |
-        npm cache clean --force
-        npm install --no-cache --prefer-offline --no-audit --production
-
-    - name: Sync Android platform
-      run: |
-        if [ -d "android" ]; then
-          echo "Android platform already exists, syncing..."
-          # Just ensure the platform is updated
-          if [ -f "node_modules/@capacitor/cli/bin/capacitor" ]; then
-            node node_modules/@capacitor/cli/bin/capacitor sync android
-          fi
-        else
-          echo "No Android platform found"
-        fi
-
-    - name: Setup Java
-      uses: actions/setup-java@v4
+    - run: npm install --no-cache --prefer-offline
+    - run: node node_modules/@capacitor/cli/bin/capacitor sync
+    - uses: actions/setup-java@v4
       with:
-        distribution: 'temurin'
         java-version: '17'
-
-    - name: Build Android APK
-      run: |
-        if [ -d "android" ]; then
-          cd android
-          chmod +x ./gradlew
-          ./gradlew assembleDebug
-        else
-          echo "Cannot build - Android directory missing"
-          exit 1
-        fi
-
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
+        distribution: 'temurin'
+    - run: cd android && ./gradlew assembleDebug
+    - uses: actions/upload-artifact@v4
       with:
         name: android-apk
         path: android/app/build/outputs/apk/debug/app-debug.apk
