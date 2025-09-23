@@ -7,22 +7,40 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    
-    - uses: actions/setup-node@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
       with:
         node-version: '18'
-    
-    - run: npx cap sync
-    
-    - uses: actions/setup-java@v4
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: |
+        npm install
+        npm list @capacitor/cli || npm install @capacitor/cli
+
+    - name: Verify Capacitor installation
+      run: npx capacitor --version
+
+    - name: Sync Capacitor
+      run: npx cap sync
+
+    - name: Setup Java
+      uses: actions/setup-java@v4
       with:
-        java-version: '17'
         distribution: 'temurin'
-        
-    - run: cd android && ./gradlew assembleDebug
-        
-    - uses: actions/upload-artifact@v4
+        java-version: '17'
+
+    - name: Build Android APK
+      run: |
+        cd android
+        chmod +x ./gradlew
+        ./gradlew assembleDebug
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
       with:
         name: android-apk
         path: android/app/build/outputs/apk/debug/app-debug.apk
