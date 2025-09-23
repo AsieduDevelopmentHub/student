@@ -1,25 +1,43 @@
 name: Build Android APK
 
-on: [push, workflow_dispatch]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-    - run: npm install --legacy-peer-deps
-    - run: npx cap sync
-    - uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-    - run: cd android && ./gradlew assembleDebug
-    - uses: actions/upload-artifact@v4
-      with:
-        name: android-apk
-        path: android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true   # Ensure submodules are checked out if you use them
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Clean npm cache
+        run: npm cache clean --force
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      # If you need to build the Android APK, update this command as needed:
+      - name: Build Android APK
+        run: npm run build:android
+
+      # Optional: Upload the APK as an artifact
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-apk
+          path: android/app/build/outputs/apk/debug/app-debug.ap
+
+      # (Optional) Clean up
+      - name: Post-job cleanup
+        run: |
+          echo "Cleaning up after build"
