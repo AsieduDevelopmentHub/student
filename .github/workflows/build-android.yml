@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4  # Use v4 instead of v3
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -19,9 +19,16 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
-      - name: Install dependencies
+      # Clean npm cache to avoid corrupted tarballs
+      - name: Clean npm cache
         run: |
-          npm install --legacy-peer-deps
+          npm cache clean --force
+
+      - name: Install dependencies (with retries, no cache)
+        run: |
+          for i in 1 2 3; do
+            npm install --no-cache --prefer-offline --legacy-peer-deps && break || sleep 10
+          done
 
       - name: Initialize Capacitor
         run: |
