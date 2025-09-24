@@ -19,22 +19,17 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
-      # Clean npm cache to avoid corrupted tarballs
       - name: Clean npm cache
-        run: |
-          npm cache clean --force
+        run: npm cache clean --force
 
-      - name: Install dependencies (with retries, no cache)
+      - name: Install dependencies (with retries)
         run: |
           for i in 1 2 3; do
-            npm install --no-cache --prefer-offline --legacy-peer-deps && break || sleep 10
+            npm install --legacy-peer-deps && break || sleep 10
           done
 
-      - name: Initialize Capacitor
-        run: |
-          npx cap init "Asiedu Dev Hub" "com.asiedudevhub.app" --web-dir Profile
-          npx cap add android
-          npx cap sync
+      - name: Sync Capacitor
+        run: npx cap sync android
 
       - name: Set up Java
         uses: actions/setup-java@v4
