@@ -10,10 +10,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo (with submodules)
         uses: actions/checkout@v4
+        with:
+          submodules: true
 
-      - name: Set up Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '18'
@@ -22,22 +24,25 @@ jobs:
       - name: Clean npm cache
         run: npm cache clean --force
 
-      - name: Install dependencies (with retries)
+      - name: Install deps (with retry)
         run: |
           for i in 1 2 3; do
             npm install --legacy-peer-deps && break || sleep 10
           done
 
+      - name: Show file structure (debug)
+        run: ls -R .
+
       - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Set up Java
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Build Android APK
+      - name: Build APK
         run: |
           cd android
           chmod +x ./gradlew
