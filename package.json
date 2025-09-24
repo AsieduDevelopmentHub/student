@@ -15,7 +15,7 @@
     "IoT development Africa"
   ],
   "type": "commonjs",
-  "main": "Profile/index.html",
+  "main": "portfolio/index.html",
   "scripts": {
     "build": "echo 'No build needed for static site'",
     "cap:sync": "npx cap sync"
