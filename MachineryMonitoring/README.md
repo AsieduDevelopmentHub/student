@@ -119,7 +119,7 @@ based on live sensor data.
 | Historical Analytics |
 | Alert Visualization  |
 +----------------------+
-
+```
 
 ## Key Functionalities
 
