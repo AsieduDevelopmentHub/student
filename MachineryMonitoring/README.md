@@ -119,3 +119,52 @@ based on live sensor data.
 | Historical Analytics |
 | Alert Visualization  |
 +----------------------+
+
+
+## Key Functionalities
+
+- Real-time Firebase data streaming  
+- Threshold-based alert detection  
+- Interactive Chart.js gauge visualization  
+- Historical data logging and retrieval  
+- Responsive multi-device dashboard  
+- Live environmental and machine monitoring  
+
+---
+
+## Use Cases
+
+- Industrial machine monitoring  
+- Predictive maintenance systems  
+- Smart factory supervision  
+- Environmental condition monitoring  
+- Remote equipment diagnostics  
+- IoT-based industrial safety systems  
+
+---
+
+## Future Improvements
+
+- AI-powered anomaly detection  
+- SMS and email notifications  
+- MQTT integration  
+- Predictive maintenance analytics  
+- Mobile application support  
+- User authentication system  
+- Cloud report generation  
+
+---
+
+## Developer
+
+### Asiedu Minta Kwaku
+
+Embedded Systems Engineer • IoT Developer • Full-Stack Developer
+
+Focused on building intelligent systems that integrate hardware, software, cloud infrastructure, and real-time monitoring technologies.
+
+---
+
+## License
+
+This project is intended for educational, research, and industrial IoT development purposes.
